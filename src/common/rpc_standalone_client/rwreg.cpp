@@ -21,7 +21,7 @@
 	catch (wisc::RPCMsg::BadKeyException &e) { \
 		printf("Caught exception: %s\n", e.key.c_str()); \
 		return 0xdeaddead; \
-	} 
+	}
 
 #define ASSERT(x) do { \
 		if (!(x)) { \
@@ -35,7 +35,7 @@ static wisc::RPCMsg req, rsp;
 
 DLLEXPORT uint32_t init(char * hostname)
 {
-  try {
+    try {
 		rpc.connect(hostname);
 	}
 	catch (wisc::RPCSvc::ConnectionFailedException &e) {
@@ -53,6 +53,8 @@ DLLEXPORT uint32_t init(char * hostname)
   		ASSERT(rpc.load_module("utils", "utils v1.0.1"));
   		ASSERT(rpc.load_module("optohybrid", "optohybrid v1.0.1"));
   		ASSERT(rpc.load_module("amc", "amc v1.0.1"));
+        ASSERT(rpc.load_module("calibration_routines", "calibration_routines v1.0.1"));
+        ASSERT(rpc.load_module("vfat3", "vfat3 v1.0.1"));
   	}
   	STANDARD_CATCH;
 
@@ -69,15 +71,15 @@ DLLEXPORT uint32_t update_atdb(char * xmlfilename)
 	STANDARD_CATCH;
 
 	if (rsp.get_key_exists("error")) {
-    return 1;
-  }
+        return 1;
+    }
 	return 0;
 }
 
 DLLEXPORT uint32_t getRegInfoDB(char * regName)
 {
-  uint32_t address, mask;
-  std::string permissions;
+    uint32_t address, mask;
+    std::string permissions;
 	req = wisc::RPCMsg("utils.readRegFromDB");
 	req.set_string("reg_name", regName);
 	try {
@@ -86,16 +88,16 @@ DLLEXPORT uint32_t getRegInfoDB(char * regName)
 	STANDARD_CATCH;
 
 	if (rsp.get_key_exists("error")) {
-    return 1;
-  }
-  printf("Register %s is found \n",regName);
-  try {
-    address = rsp.get_word("address");
-    mask = rsp.get_word("mask");
-    permissions = rsp.get_string("permissions");
+        return 1;
+    }
+    printf("Register %s is found \n",regName);
+    try {
+        address = rsp.get_word("address");
+        mask = rsp.get_word("mask");
+        permissions = rsp.get_string("permissions");
 
-    printf("Address: 0x%8x, permissions: %s, mask: 0x%8x \n", address, permissions.c_str(), mask);
-  }
+        printf("Address: 0x%8x, permissions: %s, mask: 0x%8x \n", address, permissions.c_str(), mask);
+    }
 	STANDARD_CATCH;
 	return 0;
 }
@@ -104,7 +106,7 @@ DLLEXPORT uint32_t configureVT1(char * ohN, char * config, unsigned int vt1 = 0x
 {
 	req = wisc::RPCMsg("optohybrid.loadVT1");
 	req.set_string("oh_number", ohN);
-  req.set_word("vt1",vt1);
+    req.set_word("vt1",vt1);
 	if (config && config[0]!='\0') req.set_string("thresh_config_filename", config);
 	try {
 		rsp = rpc.call_method(req);
@@ -112,9 +114,9 @@ DLLEXPORT uint32_t configureVT1(char * ohN, char * config, unsigned int vt1 = 0x
 	STANDARD_CATCH;
 
 	if (rsp.get_key_exists("error")) {
-    printf("Error: %s",rsp.get_string("error").c_str());
-    return 1;
-  }
+        printf("Error: %s",rsp.get_string("error").c_str());
+        return 1;
+    }
 	return 0;
 }
 
@@ -129,9 +131,9 @@ DLLEXPORT uint32_t configureTRIMDAC(char * ohN, char * config)
 	STANDARD_CATCH;
 
 	if (rsp.get_key_exists("error")) {
-    printf("Error: %s",rsp.get_string("error").c_str());
-    return 1;
-  }
+        printf("Error: %s",rsp.get_string("error").c_str());
+        return 1;
+    }
 	return 0;
 }
 
@@ -139,9 +141,9 @@ DLLEXPORT uint32_t configureVFATs(char * ohN, char * trim_config, char * thresh_
 {
 	req = wisc::RPCMsg("optohybrid.configureVFATs");
 	req.set_string("oh_number", ohN);
-  req.set_word("vt1",vt1);
+    req.set_word("vt1",vt1);
 	req.set_string("trim_config_filename", trim_config);
-  if (set_run) req.set_word("set_run", set_run);
+    if (set_run) req.set_word("set_run", set_run);
 	if (thresh_config && thresh_config[0]!='\0') req.set_string("thresh_config_filename", thresh_config);
 	try {
 		rsp = rpc.call_method(req);
@@ -149,11 +151,69 @@ DLLEXPORT uint32_t configureVFATs(char * ohN, char * trim_config, char * thresh_
 	STANDARD_CATCH;
 
 	if (rsp.get_key_exists("error")) {
-    printf("Error: %s",rsp.get_string("error").c_str());
-    return 1;
-  }
+        printf("Error: %s",rsp.get_string("error").c_str());
+        return 1;
+    }
 	return 0;
 }
+
+DLLEXPORT uint32_t vfatSyncCheck(uint32_t* result, unsigned int ohN){
+    req = wisc::RPCMsg("vfat3.vfatSyncCheck");
+    req.set_word("ohN", ohN);
+    try{
+        rsp = rpc.call_method(req);
+    }
+    STANDARD_CATCH;
+
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            rsp.get_word("goodVFATs", result);
+        }
+    }
+	STANDARD_CATCH;
+
+    return 0;
+} //End vfatSyncCheck()
+
+DLLEXPORT uint32_t configureVFAT3s(unsigned int ohN, unsigned int vfatMask){
+    req = wisc::RPCMsg("vfat3.configureVFAT3s");
+    req.set_word("ohN", ohN);
+    req.set_word("vfatMask", vfatMask)
+    try{
+        rsp = rpc.call_method(req);
+    }
+    STANDARD_CATCH;
+
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+    }
+	STANDARD_CATCH;
+
+    return 0;
+} //End configureVFAT3s()
+
+DLLEXPORT uint32_t configureTTC(unsigned int l1AInt, unsigned int pDelay){
+    req = wisc::RPCMsg("calibration_routines.ttcGenConf");
+    req.set_word("L1Ainterval",l1AInt);
+    req.set_word("pulseDelay",pDelay);
+    try{
+        rsp = rpc.call_method(req);
+    }
+    STANDARD_CATCH;
+
+    if (rsp.get_key_exists("error")) {
+        printf("Error: %s",rsp.get_string("error").c_str());
+        return 1;
+    }
+	return 0;
+} //End configureTTC()
 
 DLLEXPORT uint32_t getmonTTCmain(uint32_t* result)
 {
@@ -163,18 +223,19 @@ DLLEXPORT uint32_t getmonTTCmain(uint32_t* result)
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      printf("Error: %s",rsp.get_string("error").c_str());
-      return 1;
-    } else {
-      result[0] = rsp.get_word("MMCM_LOCKED");
-      result[1] = rsp.get_word("TTC_SINGLE_ERROR_CNT");
-      result[2] = rsp.get_word("BC0_LOCKED");
-      result[3] = rsp.get_word("L1A_ID");
-      result[4] = rsp.get_word("L1A_RATE");
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            result[0] = rsp.get_word("MMCM_LOCKED");
+            result[1] = rsp.get_word("TTC_SINGLE_ERROR_CNT");
+            result[2] = rsp.get_word("BC0_LOCKED");
+            result[3] = rsp.get_word("L1A_ID");
+            result[4] = rsp.get_word("L1A_RATE");
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return 0;
@@ -183,25 +244,26 @@ DLLEXPORT uint32_t getmonTTCmain(uint32_t* result)
 DLLEXPORT uint32_t getmonTRIGGERmain(uint32_t* result, uint32_t noh = 10)
 {
 	req = wisc::RPCMsg("amc.getmonTRIGGERmain");
-  req.set_word("NOH",noh);
+    req.set_word("NOH",noh);
 	try {
 		rsp = rpc.call_method(req);
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      printf("Error: %s",rsp.get_string("error").c_str());
-      return 1;
-    } else {
-      std::string t;
-      result[0] = rsp.get_word("OR_TRIGGER_RATE");
-      for (int i = 0; i < noh; i++) {
-        t = "OH"+std::to_string(i)+".TRIGGER_RATE";
-        result[i+1] = rsp.get_word(t);
-      }
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            std::string t;
+            result[0] = rsp.get_word("OR_TRIGGER_RATE");
+            for (int i = 0; i < noh; i++) {
+                t = "OH"+std::to_string(i)+".TRIGGER_RATE";
+                result[i+1] = rsp.get_word(t);
+            }
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return 0;
@@ -210,26 +272,27 @@ DLLEXPORT uint32_t getmonTRIGGERmain(uint32_t* result, uint32_t noh = 10)
 DLLEXPORT uint32_t getmonTRIGGEROHmain(uint32_t* result, uint32_t noh = 10)
 {
 	req = wisc::RPCMsg("amc.getmonTRIGGEROHmain");
-  req.set_word("NOH",noh);
+    req.set_word("NOH",noh);
 	try {
 		rsp = rpc.call_method(req);
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      printf("Error: %s",rsp.get_string("error").c_str());
-      return 1;
-    } else {
-      std::string t;
-      for (int i = 0; i < noh; i++) {
-        t = "OH"+std::to_string(i)+".LINK0_NOT_VALID_CNT";
-        result[i] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".LINK1_NOT_VALID_CNT";
-        result[i+noh] = rsp.get_word(t);
-      }
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            std::string t;
+            for (int i = 0; i < noh; i++) {
+                t = "OH"+std::to_string(i)+".LINK0_NOT_VALID_CNT";
+                result[i] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".LINK1_NOT_VALID_CNT";
+                result[i+noh] = rsp.get_word(t);
+            }
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return 0;
@@ -243,22 +306,23 @@ DLLEXPORT uint32_t getmonDAQmain(uint32_t* result)
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      printf("Error: %s",rsp.get_string("error").c_str());
-      return 1;
-    } else {
-      result[0] = rsp.get_word("DAQ_ENABLE");
-      result[1] = rsp.get_word("DAQ_LINK_READY");
-      result[2] = rsp.get_word("DAQ_LINK_AFULL");
-      result[3] = rsp.get_word("DAQ_OFIFO_HAD_OFLOW");
-      result[4] = rsp.get_word("L1A_FIFO_HAD_OFLOW");
-      result[5] = rsp.get_word("L1A_FIFO_DATA_COUNT");
-      result[6] = rsp.get_word("DAQ_FIFO_DATA_COUNT");
-      result[7] = rsp.get_word("EVENT_SENT");
-      result[8] = rsp.get_word("TTS_STATE");
+    try{
+        if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            result[0] = rsp.get_word("DAQ_ENABLE");
+            result[1] = rsp.get_word("DAQ_LINK_READY");
+            result[2] = rsp.get_word("DAQ_LINK_AFULL");
+            result[3] = rsp.get_word("DAQ_OFIFO_HAD_OFLOW");
+            result[4] = rsp.get_word("L1A_FIFO_HAD_OFLOW");
+            result[5] = rsp.get_word("L1A_FIFO_DATA_COUNT");
+            result[6] = rsp.get_word("DAQ_FIFO_DATA_COUNT");
+            result[7] = rsp.get_word("EVENT_SENT");
+            result[8] = rsp.get_word("TTS_STATE");
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return 0;
@@ -267,34 +331,35 @@ DLLEXPORT uint32_t getmonDAQmain(uint32_t* result)
 DLLEXPORT uint32_t getmonDAQOHmain(uint32_t* result, uint32_t noh = 10)
 {
 	req = wisc::RPCMsg("amc.getmonDAQOHmain");
-  req.set_word("NOH",noh);
+    req.set_word("NOH",noh);
 	try {
 		rsp = rpc.call_method(req);
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      printf("Error: %s",rsp.get_string("error").c_str());
-      return 1;
-    } else {
-      std::string t;
-      for (int i = 0; i < noh; i++) {
-        t = "OH"+std::to_string(i)+".STATUS.EVT_SIZE_ERR";
-        result[i] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".STATUS.EVENT_FIFO_HAD_OFLOW";
-        result[i+noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".STATUS.INPUT_FIFO_HAD_OFLOW";
-        result[i+2*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".STATUS.INPUT_FIFO_HAD_UFLOW";
-        result[i+3*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".STATUS.VFAT_TOO_MANY";
-        result[i+4*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".STATUS.VFAT_NO_MARKER";
-        result[i+5*noh] = rsp.get_word(t);
-      }
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            std::string t;
+            for (int i = 0; i < noh; i++) {
+                t = "OH"+std::to_string(i)+".STATUS.EVT_SIZE_ERR";
+                result[i] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".STATUS.EVENT_FIFO_HAD_OFLOW";
+                result[i+noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".STATUS.INPUT_FIFO_HAD_OFLOW";
+                result[i+2*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".STATUS.INPUT_FIFO_HAD_UFLOW";
+                result[i+3*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".STATUS.VFAT_TOO_MANY";
+                result[i+4*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".STATUS.VFAT_NO_MARKER";
+                result[i+5*noh] = rsp.get_word(t);
+            }
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return 0;
@@ -303,36 +368,37 @@ DLLEXPORT uint32_t getmonDAQOHmain(uint32_t* result, uint32_t noh = 10)
 DLLEXPORT uint32_t getmonOHmain(uint32_t* result, uint32_t noh = 10)
 {
 	req = wisc::RPCMsg("amc.getmonOHmain");
-  req.set_word("NOH",noh);
+    req.set_word("NOH",noh);
 	try {
 		rsp = rpc.call_method(req);
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      printf("Error: %s",rsp.get_string("error").c_str());
-      return 1;
-    } else {
-      std::string t;
-      for (int i = 0; i < noh; i++) {
-        t = "OH"+std::to_string(i)+".FW_VERSION";
-        result[i] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".EVENT_COUNTER";
-        result[i+noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".EVENT_RATE";
-        result[i+2*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".GTX.TRK_ERR";
-        result[i+3*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".GTX.TRG_ERR";
-        result[i+4*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".GBT.TRK_ERR";
-        result[i+5*noh] = rsp.get_word(t);
-        t = "OH"+std::to_string(i)+".CORR_VFAT_BLK_CNT";
-        result[i+6*noh] = rsp.get_word(t);
-      }
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+            std::string t;
+            for (int i = 0; i < noh; i++) {
+                t = "OH"+std::to_string(i)+".FW_VERSION";
+                result[i] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".EVENT_COUNTER";
+                result[i+noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".EVENT_RATE";
+                result[i+2*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".GTX.TRK_ERR";
+                result[i+3*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".GTX.TRG_ERR";
+                result[i+4*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".GBT.TRK_ERR";
+                result[i+5*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(i)+".CORR_VFAT_BLK_CNT";
+                result[i+6*noh] = rsp.get_word(t);
+            }
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return 0;
@@ -349,14 +415,15 @@ DLLEXPORT unsigned long getReg(unsigned int address)
 	STANDARD_CATCH;
 
 	uint32_t result;
-  try{
-	  if (rsp.get_key_exists("error")) {
-      return 0xdeaddead;
-    } else {
-	    ASSERT(rsp.get_word_array_size("data") == 1);
-      rsp.get_word_array("data", &result);
+    try{
+	    if (rsp.get_key_exists("error")) {
+            return 0xdeaddead;
+        }
+        else {
+	        ASSERT(rsp.get_word_array_size("data") == 1);
+            rsp.get_word_array("data", &result);
+        }
     }
-  }
 	STANDARD_CATCH;
 
 	return result;
@@ -372,16 +439,18 @@ DLLEXPORT unsigned long getBlock(unsigned int address, uint32_t* result, ssize_t
 	}
 	STANDARD_CATCH;
 
-  try{
-	  if (rsp.get_key_exists("error")) {
-      return 1;
-    } else {
-	    ASSERT(rsp.get_word_array_size("data") == size);
-      rsp.get_word_array("data", result);
+    try{
+	    if (rsp.get_key_exists("error")) {
+            return 1;
+        }
+        else {
+	        ASSERT(rsp.get_word_array_size("data") == size);
+            rsp.get_word_array("data", result);
+        }
     }
-  }
 	STANDARD_CATCH;
-  return 0;
+
+    return 0;
 }
 
 DLLEXPORT unsigned long getList(uint32_t* addresses, uint32_t* result, ssize_t size)
@@ -395,15 +464,17 @@ DLLEXPORT unsigned long getList(uint32_t* addresses, uint32_t* result, ssize_t s
 	STANDARD_CATCH;
 
   try{
-	  if (rsp.get_key_exists("error")) {
-      return 1;
-    } else {
-	    ASSERT(rsp.get_word_array_size("data") == size);
-      rsp.get_word_array("data", result);
+	    if (rsp.get_key_exists("error")) {
+            return 1;
+        }
+        else {
+	        ASSERT(rsp.get_word_array_size("data") == size);
+            rsp.get_word_array("data", result);
+        }
     }
-  }
 	STANDARD_CATCH;
-  return 0;
+
+    return 0;
 }
 DLLEXPORT unsigned long putReg(unsigned int address, unsigned int value)
 {
@@ -414,7 +485,41 @@ DLLEXPORT unsigned long putReg(unsigned int address, unsigned int value)
 		rsp = rpc.call_method(req);
 	}
 	STANDARD_CATCH;
-  if (rsp.get_key_exists("error")) {
-    return 0xdeaddead;
-  } else return value;
+    if (rsp.get_key_exists("error")) {
+        return 0xdeaddead;
+    }
+    else return value;
 }
+
+DLLEXPORT uint32_t scanDAC(uint32_t* result, ssize_t size,
+        unsigned int ohN, unsigned int vfatMask, unsigned int chan, std::string scanReg,
+        unsigned int nEvts, unsigned int scanMin, unsigned int scanMax, unsigned int stepSize){
+    req = wisc::RPCMsg("calibration_routines.genScan");
+    req.set_word("ohN",ohN);
+    req.set_word("mask",vfatMask);
+    req.set_word("ch",chan);
+    req.set_word("scanReg",scanReg);
+    req.set_word("nevts",nEvts);
+    req.set_word("dacMin",scanMin);
+    req.set_word("dacMax",scanMax);
+    req.set_word("dacStep",stepSize);
+
+    try{
+        rsp = rpc.call_method(req);
+    }
+    STANDARD_CATCH;
+
+    try{
+	    if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        }
+        else {
+	        ASSERT(rsp.get_word_array_size("data") == size);
+            rsp.get_word_array("data", result);
+        }
+    }
+	STANDARD_CATCH;
+
+    return 0;
+} //End scanDAC()
