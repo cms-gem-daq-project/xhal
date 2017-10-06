@@ -4,7 +4,8 @@ from time import sleep
 #import uhal
 from ctypes import *
 
-lib = CDLL(os.getenv("XHAL_ROOT")+"/lib/x86_64/librwreg.so")
+#lib = CDLL(os.getenv("XHAL_ROOT")+"/lib/x86_64/librwreg.so")
+lib = CDLL(os.getenv("XHAL_ROOT")+"/lib/x86_64/librpcman.so")
 rReg = lib.getReg
 rReg.restype = c_uint
 rReg.argtypes=[c_uint]
