@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import xml.etree.ElementTree as xml
 import sys, os, subprocess
 from time import sleep
@@ -37,7 +38,7 @@ def updateLMDB(cardName):
     return
 
 if __name__ == '__main__':
-  from optparse import OptionParser
+    from optparse import OptionParser
 
     parser = OptionParser()
     parser.add_option("-c","--cardName", type="string", dest="cardName",
