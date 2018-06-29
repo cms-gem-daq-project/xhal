@@ -596,7 +596,7 @@ def jtagCommand(restoreIdle, ir, irLen, dr, drLen, drReadOhList):
 
     #raw_input("Press any key to read TDI...")
 
-    readValues = []
+    readValues = {}
 
     if drReadOhList == False:
         return readValues
@@ -630,7 +630,7 @@ def jtagCommand(restoreIdle, ir, irLen, dr, drLen, drReadOhList):
             debug('tdi = ' + hex(tdi))
 
         readValue = (tdi >> readIdx) & (0xffffffffffffffffffffffffffffffff >> (128  - drLen))
-        readValues.append(readValue)
+        readValues[i] = readValue
         debug('Read pos = ' + str(readIdx))
         debug('Read = ' + hex(readValue))
     return readValues
