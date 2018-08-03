@@ -6,40 +6,18 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libmemsvc.h>
+#include "memhub.h"
 #include <iostream>
 #include <sstream>
 
-#define MAX_OBUF (512*1024) 
+#define MAX_OBUF (512*1024)
 
 static bool memsvc_inited = false;
-static memsvc_handle_t memsvc;
-
-uint32_t stat_data[1024];
-
-bool getLock(){
-    return ( access("/tmp/ipbus.lock", F_OK ) != -1 );
-}
-
-int gem_memsvc_read(memsvc_handle_t handle, uint32_t addr, uint32_t words, uint32_t *data){
-    if (getLock()) {
-        data = stat_data;
-        return 0;
-    }
-    else {
-        return memsvc_read(handle, addr, words, data);
-    }
-}
-int gem_memsvc_write(memsvc_handle_t handle, uint32_t addr, uint32_t words, const uint32_t *data){
-    int i = 0;
-    while (getLock() && (i < 3000)){
-        usleep(1000);
-        i++;
-    }
-    return memsvc_write(handle, addr, words, data);
-}
+static memsvc_handle_t memhub;
 
 bool Client::write_ready()
-{	return obuf.size();
+{
+	return obuf.size();
 }
 
 bool Client::read_ready()
@@ -101,7 +79,7 @@ bool Client::run_io()
 	if (this->obuf.size()) {
 		ssize_t writecount = send(this->fd, this->obuf.data(), this->obuf.size(), MSG_DONTWAIT|MSG_NOSIGNAL);
 		if (readcount < 0 && errno != EAGAIN)
-			return false; // Error. 
+			return false; // Error.
 		this->obuf = this->obuf.erase(0, writecount);
 	}
 	return true;
@@ -116,8 +94,8 @@ void endian_swap(std::deque<uint32_t> &vec)
 void Client::process_frame(std::deque<uint32_t> &request, std::deque<uint32_t> &response)
 {
 	if (!memsvc_inited) {
-		if (memsvc_open(&memsvc) != 0) {
-			fprintf(stderr, "Unable to connect to memory service: %s", memsvc_get_last_error(memsvc));
+		if (memhub_open(&memhub) != 0) {
+			fprintf(stderr, "Unable to connect to memory service: %s", memsvc_get_last_error(memhub));
 			exit(1);
 		}
 		memsvc_inited = true;
@@ -180,7 +158,7 @@ void Client::process_control_packet(std::deque<uint32_t> &request, std::deque<ui
 	if (request.size() < 1) {
 		return; // Missing Header.
 	}
-	
+
 	while (request.size()) {
 		IPBusTxnHdr transaction_header(request.front());
 		request.pop_front();
@@ -224,7 +202,7 @@ void Client::process_read_txn(IPBusTxnHdr transaction_header, std::deque<uint32_
         base_addr = modified_addr;
 
 	uint32_t data[transaction_header.words];
-	if (gem_memsvc_read(memsvc, base_addr, transaction_header.words, data) == 0) {
+	if (memhub_read(memhub, base_addr, transaction_header.words, data) == 0) {
 		transaction_header.info_code = IPBusTxnHdr::SUCCESS;
 		response.push_back(transaction_header.serialize());
 		for (int i = 0; i < transaction_header.words; ++i)
@@ -257,7 +235,7 @@ void Client::process_write_txn(IPBusTxnHdr transaction_header, std::deque<uint32
 		}
 		data[i] = request.front(); request.pop_front();
 	}
-	if (gem_memsvc_write(memsvc, base_addr, transaction_header.words, data) == 0) {
+	if (memhub_write(memhub, base_addr, transaction_header.words, data) == 0) {
 		transaction_header.info_code = IPBusTxnHdr::SUCCESS;
 		response.push_back(transaction_header.serialize());
 	}
@@ -282,7 +260,7 @@ void Client::process_niread_txn(IPBusTxnHdr transaction_header, std::deque<uint3
 	std::deque<uint32_t> rspdata;
 	for (int i = 0; i < transaction_header.words; ++i) {
 		uint32_t data;
-		if (gem_memsvc_read(memsvc, base_addr, 1, &data) == 0) {
+		if (memhub_read(memhub, base_addr, 1, &data) == 0) {
 			rspdata.push_back(data);
 		}
 		else {
@@ -311,7 +289,7 @@ void Client::process_niwrite_txn(IPBusTxnHdr transaction_header, std::deque<uint
 
 	for (int i = 0; i < transaction_header.words; ++i) {
 		uint32_t data = request.front(); request.pop_front();
-		if (gem_memsvc_write(memsvc, base_addr, 1, &data) != 0) {
+		if (memhub_write(memhub, base_addr, 1, &data) != 0) {
 			// Failed!
 			transaction_header.info_code = IPBusTxnHdr::BUSERR_WRITE;
 			response.push_back(transaction_header.serialize());
@@ -338,14 +316,14 @@ void Client::process_rmwbits_txn(IPBusTxnHdr transaction_header, std::deque<uint
 	uint32_t or_term = request.front(); request.pop_front();
 
 	uint32_t predata;
-	if (gem_memsvc_read(memsvc, base_addr, 1, &predata) != 0) {
+	if (memhub_read(memhub, base_addr, 1, &predata) != 0) {
 		// Failed!
 		transaction_header.info_code = IPBusTxnHdr::BUSERR_READ;
 		response.push_back(transaction_header.serialize());
 		return;
 	}
 	uint32_t data = (predata & and_term) | or_term;
-	if (gem_memsvc_write(memsvc, base_addr, 1, &data) != 0) {
+	if (memhub_write(memhub, base_addr, 1, &data) != 0) {
 		// Failed!
 		transaction_header.info_code = IPBusTxnHdr::BUSERR_WRITE;
 		response.push_back(transaction_header.serialize());
@@ -370,14 +348,14 @@ void Client::process_rmwsum_txn(IPBusTxnHdr transaction_header, std::deque<uint3
 	uint32_t addend = request.front(); request.pop_front();
 
 	uint32_t predata;
-	if (gem_memsvc_read(memsvc, base_addr, 1, &predata) != 0) {
+	if (memhub_read(memhub, base_addr, 1, &predata) != 0) {
 		// Failed!
 		transaction_header.info_code = IPBusTxnHdr::BUSERR_READ;
 		response.push_back(transaction_header.serialize());
 		return;
 	}
 	uint32_t data = predata + addend;
-	if (gem_memsvc_write(memsvc, base_addr, 1, &data) != 0) {
+	if (memhub_write(memhub, base_addr, 1, &data) != 0) {
 		// Failed!
 		transaction_header.info_code = IPBusTxnHdr::BUSERR_WRITE;
 		response.push_back(transaction_header.serialize());
