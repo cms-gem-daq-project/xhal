@@ -18,7 +18,7 @@ DLLEXPORT uint32_t sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFil
     //Acquire data
     printf("sbitReadOut(): Beginning acquisition of trigger data\n");
     while(netTime < acquireTime){ //Acquisition Loop
-        printf("sbitReadOut(): acquired data for %i seconds of requested %i seconds, data taking continues", netTime, acquireTime);
+        printf("sbitReadOut(): acquired data for %i seconds of requested %i seconds, data taking continues\n", netTime, acquireTime);
 
         //Open output file for this acquisition
         std::string strFileName(outFilePath);
