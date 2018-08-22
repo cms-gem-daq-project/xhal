@@ -15,7 +15,7 @@ namespace xhal {
        * @param address_table_filename XML address table file name
        */
       VFAT3(const std::string& board_domain_name, const std::string& address_table_filename);
-       
+
       //FIXME provide docs
       /**
        * @brief load configuration parameters to VFAT3 chips
