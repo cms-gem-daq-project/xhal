@@ -4,6 +4,53 @@
 #include <vector>
 #include "xhal/rpc/amc.h"
 
+DLLEXPORT uint32_t getOHVFATMask(uint32_t ohN){
+    req = wisc::RPCMsg("amc.getOHVFATMask");
+
+    req.set_word("ohN",ohN);
+
+    wisc::RPCSvc* rpc_loc = getRPCptr();
+    try {
+        rsp = rpc_loc->call_method(req);
+    }
+    STANDARD_CATCH;
+
+    if (rsp.get_key_exists("error")) {
+        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
+        return 0xffffffff;
+    }
+
+    return rsp.get_word("vfatMask");
+} //End getOHVFATMask(...)
+
+DLLEXPORT uint32_t getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVfatMaskArray){
+    req = wisc::RPCMsg("amc.getOHVFATMaskMultiLink");
+
+    req.set_word("ohMask", ohMask);
+
+    wisc::RPCSvc* rpc_loc = getRPCptr();
+
+    try {
+        rsp = rpc_loc->call_method(req);
+    }
+    STANDARD_CATCH;
+
+    if (rsp.get_key_exists("error")) {
+        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
+        return 1;
+    }
+    const uint32_t size = 12;
+    if (rsp.get_key_exists("ohVfatMaskArray")) {
+        ASSERT(rsp.get_word_array_size("ohVfatMaskArray") == size);
+        rsp.get_word_array("ohVfatMaskArray", ohVfatMaskArray);
+    } else {
+        printf("No ohVfatMaskArray key found");
+        return 1;
+    }
+
+    return 0;
+} //End getOHVFATMaskMultiLink(...)
+
 DLLEXPORT uint32_t sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFilePath){
     req = wisc::RPCMsg("amc.sbitReadOut");
 
