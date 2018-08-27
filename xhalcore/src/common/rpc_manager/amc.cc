@@ -4,14 +4,19 @@
 #include <vector>
 #include "xhal/rpc/amc.h"
 
-DLLEXPORT uint32_t getOHVFATMask(uint32_t ohN){
+xhal::rpc::AMC3::AMC3(const std::string& board_domain_name, const std::string& address_table_filename):
+  xhal::XHALDevice(board_domain_name, address_table_filename)
+{
+  this->loadModule("amc","amc v1.0.1");
+}
+
+uint32_t xhal::rpc::AMC::getOHVFATMask(uint32_t ohN){
     req = wisc::RPCMsg("amc.getOHVFATMask");
 
     req.set_word("ohN",ohN);
 
-    wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
-        rsp = rpc_loc->call_method(req);
+        rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
@@ -23,15 +28,13 @@ DLLEXPORT uint32_t getOHVFATMask(uint32_t ohN){
     return rsp.get_word("vfatMask");
 } //End getOHVFATMask(...)
 
-DLLEXPORT uint32_t getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVfatMaskArray){
+uint32_t xhal::rpc::AMC::getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVfatMaskArray){
     req = wisc::RPCMsg("amc.getOHVFATMaskMultiLink");
 
     req.set_word("ohMask", ohMask);
 
-    wisc::RPCSvc* rpc_loc = getRPCptr();
-
     try {
-        rsp = rpc_loc->call_method(req);
+        rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
@@ -51,13 +54,11 @@ DLLEXPORT uint32_t getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVfatMask
     return 0;
 } //End getOHVFATMaskMultiLink(...)
 
-DLLEXPORT uint32_t sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFilePath){
+uint32_t xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFilePath){
     req = wisc::RPCMsg("amc.sbitReadOut");
 
     req.set_word("ohN",ohN);
     req.set_word("acquireTime",acquireTime);
-
-    wisc::RPCSvc* rpc_loc = getRPCptr();
 
     uint32_t netTime = 0;
     int runNum = 1;
@@ -81,7 +82,7 @@ DLLEXPORT uint32_t sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFil
 
         //Call RPC Method
         try {
-            rsp = rpc_loc->call_method(req);
+            rsp = rpc.call_method(req);
         }
         STANDARD_CATCH;
 
