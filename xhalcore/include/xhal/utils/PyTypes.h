@@ -14,4 +14,4 @@ using PyDictVecUint32 = std::map<T, PyListUint32>;
 
 //this is a typedef for std::map<T, M>
 template <class T, class M>
-using NestedPyDict std::map<T,M>
+using NestedPyDict = std::map<T,M>;
