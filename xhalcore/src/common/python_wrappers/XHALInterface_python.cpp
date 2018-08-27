@@ -72,12 +72,21 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("readReg",readReg_byname)
     .def("readReg",readReg_byaddress)
     .def("writeReg",&xhal::XHALDevice::writeReg);
-  
+
   class_<PyListUint32>("PyListUint32")
     .def(vector_indexing_suite<PyListUint32>() );
 
-  class_<PyDictVecUint32>("PyDictVecUint32")
-    .def(map_indexing_suite<PyDictVecUint32>() );
+  class_<PyDictUint32<std::string> >("PyDictUint32")
+    .def(map_indexing_suite<PyDictUint32<std::string> >() );
+
+  class_<PyDictUint32<int> >("PyDictUint32")
+    .def(map_indexing_suite<PyDictUint32<int> >() );
+
+  class_<PyDictVecUint32<std::string> >("PyDictVecUint32")
+    .def(map_indexing_suite<PyDictVecUint32<std::string> >() );
+
+  class_<PyDictVecUint32<int> >("PyDictVecUint32")
+    .def(map_indexing_suite<PyDictVecUint32<int> >() );
 
   class_<xhal::rpc::DaqMonitor>("DaqMonitor", init<const std::string&>())
     .def("getmonTTCmain",&xhal::rpc::DaqMonitor::getmonTTCmain)
@@ -86,4 +95,16 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("getmonDAQOHmain",&xhal::rpc::DaqMonitor::getmonDAQOHmain,getmonDAQOHmain_overloads())
     .def("getmonOHmain",&xhal::rpc::DaqMonitor::getmonOHmain,getmonOHmain_overloads())
     .def("getmonDAQmain",&xhal::rpc::DaqMonitor::getmonDAQmain);
+}
+
+// Converts a C++ map to a python dict
+template <class K, class V>
+boost::python::dict convert2dict(const std::map<K,V> inputMap){
+    typename std::map<K,V>::const_iterator iter;
+    boost::python::dict ret_dict;
+    for(iter = inputMap.begin(); iter != inputMap.end(); ++iter){
+        ret_dict[(*iter).first] = (*iter).second;
+    }
+
+    return ret_dict;
 }
