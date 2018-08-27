@@ -1,13 +1,15 @@
 #ifndef CALIBRATION_ROUTINES_H
 #define CALIBRATION_ROUTINES_H
 
+#include "xhal/utils/CalParamTypes.h"
+#include "xhal/utils/PyTypes.h"
 #include "xhal/XHALInterface.h"
 
 namespace xhal {
   namespace rpc {
     /**
     * @class CalRoutines
-    * @brief Provides interface to call remote utility methods 
+    * @brief Provides interface to call remote utility methods
     */
     class CalRoutines : public XHALInterface
     {
@@ -22,54 +24,46 @@ namespace xhal {
 
         ~CalRoutines(){}
 
-        //FIXME Add documentation
-        uint32_t checkSbitMappingWithCalPulse(uint32_t ohN, uint32_t vfatN, uint32_t mask, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t nevts, uint32_t L1Ainterval, uint32_t pulseDelay, uint32_t *data);
+        /**
+         * @brief investigates the sbit mapping with the calpulse, can also be used to observe which channels send sbits when the calpulse is not used
+         * @param scanParams an instance of xhal::ParamScan which specifies the scan parameters
+         * @param calPulseParams an instance of xhal::ParamCalPulse which specifies the configuration of the calibration module
+         * @param ttcGenParams an instance of xhal::ParamTtcGen which specifies the configuration of the CTP7 TTC Generator
+         */
+        PyListUint32 checkSbitMappingWithCalPulse(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams, xhal::ParamTtcGen &ttcGenParams);
 
-        //FIXME Add documentation
-        uint32_t checkSbitRateWithCalPulse(uint32_t ohN, uint32_t vfatN, uint32_t mask, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t waitTime, uint32_t pulseRate, uint32_t pulseDelay, uint32_t *outDataCTP7Rate, uint32_t *outDataFPGAClusterCntRate, uint32_t *outDataVFATSBits);
+        /**
+         * @brief compares the sbit rate with a known pulse rate with the calpulse, can also be used to measure the sbit rate when the calpulse is not used
+         * @param scanParams an instance of xhal::ParamScan which specifies the scan parameters
+         * @param calPulseParams an instance of xhal::ParamCalPulse which specifies the configuration of the calibration module
+         * @param ttcGenParams an instance of xhal::ParamTtcGen which specifies the configuration of the CTP7 TTC Generator
+         */
+        PyDictVecUint32<std::string> checkSbitRateWithCalPulse(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams, xhal::ParamTtcGen &ttcGenParams);
 
         /**
          * @brief Runs a generic scan routine for a specific channel of a VFAT chip
-         *
-         * @param nevts Number of events per scan point
-         * @param ohN Optical link
-         * @param dacMin Min value of scanned variable
-         * @param dacMax Max value of scanned variable
-         * @param dacStep Step parameter
-         * @param ch VFAT channel 
-         * @param useCalPulse Indicates whether to use internal calibration pulses
-         * @param currentPulse Indicates whether to use current or voltage internal calibration pulse
-         * @param calScaleFactor FIXME
-         * @param mask FIXME
-         * @param scanReg Register to scan FIXME: add possible values
-         * @param useUltra Indicates whether to use FW-implemented ultraScan
-         * @param useExtTrig FIXME: do we need both this and useCalPulse?
-         * @param result An array carrying scan results
+         * @param scanParams an instance of xhal::ParamScan which specifies the scan parameters
+         * @param calPulseParams an instance of xhal::ParamCalPulse which specifies the configuration of the calibration module
+         * @returns A PyListUint32 container holding the scan results
          */
-        uint32_t genScan(uint32_t nevts, uint32_t ohN, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep, uint32_t ch, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t mask, char * scanReg, bool useUltra, bool useExtTrig, uint32_t * result);
+        PyListUint32 genScan(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams);
 
         /**
          * @brief Runs a generic scan routine on all channels of a VFAT chip
-         *
-         * @param nevts Number of events per scan point
-         * @param ohN Optical link
-         * @param dacMin Min value of scanned variable
-         * @param dacMax Max value of scanned variable
-         * @param dacStep Step parameter
-         * @param useCalPulse Indicates whether to use internal calibration pulses
-         * @param currentPulse Indicates whether to use current or voltage internal calibration pulse
-         * @param calScaleFactor FIXME
-         * @param mask FIXME
-         * @param scanReg Register to scan FIXME: add possible values
-         * @param useUltra Indicates whether to use FW-implemented ultraScan
-         * @param useExtTrig FIXME: do we need both this and useCalPulse?
-         * @param result An array carrying scan results
+         * @param scanParams an instance of xhal::ParamScan which specifies the scan parameters
+         * @param calPulseParams an instance of xhal::ParamCalPulse which specifies the configuration of the calibration module
+         * @returns A PyListUint32 container holding the scan results
          */
-        //FIXME Should we rearrange parameters so they are in the same order as in genScan?
-        uint32_t genChannelScan(uint32_t nevts, uint32_t ohN, uint32_t mask, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, bool useExtTrig, char * scanReg, bool useUltra, uint32_t * result);
+        PyListUint32 genChannelScan(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams);
 
-        //FIXME Add documentation
-        uint32_t sbitRateScan(uint32_t ohN, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep, uint32_t ch, uint32_t maskOh, bool invertVFATPos, char * scanReg, uint32_t waitTime, uint32_t * resultDacVal, uint32_t * resultTrigRate, uint32_t * resultTrigRatePerVFAT, bool isParallel);
+        /**
+         * @brief Measures sbit rate as a function of scanParams.scanReg and reports the trigger rate observed
+         * @param scanParams an instance of xhal::ParamScan which specifies the scan parameters
+         * @param invertVFATPos true (false) firmware uses software (hardware) numbering for VFAT position
+         * @param isParallel true (false) run scan in parallel (series)
+         * @returns A PyDictVecUint32<std::string> container with the keys {"DACVAL","CTP7Rate","VFATRate"} where each key maps to a value of PyListUint32 of all the same length and each element represents respectively the dac value, the rate measured by the CTP7, and the rate measured per VFAT.
+         */
+        PyDictVecUint32<std::string> sbitRateScan(xhal::ParamScan &scanParams, bool invertVFATPos=false, bool isParallel=true);
 
         /**
          * @brief configure TTC generator
@@ -92,8 +86,11 @@ namespace xhal {
          *      L1Ainterval (only for mode 0,1), how often to repeat signals
          *      nPulses how many signals to send (0 is continuous)
          *      enable = true (false) start (stop) the T1Controller for link ohN
+         *
+         * @param ohN Optohybrid optical link number
+         * @param ttcGenParams an instance of xhal::ParamTtcGen which specifies the configuration of the CTP7 TTC Generator
          */
-        uint32_t ttcGenConf(uint32_t ohN, uint32_t mode, uint32_t type, uint32_t pulseDelay, uint32_t L1Ainterval, uint32_t nPulses, bool enable);
+        void ttcGenConf(uint32_t ohN, xhal::ParamTtcGen &ttcGenParams);
 
         /**
          * @brief Toggles TTC behavior
@@ -101,7 +98,7 @@ namespace xhal {
          * v3  electronics: enable = true (false) ignore (take) ttc commands from backplane for this AMC
          * v2b electronics: enable = true (false) start (stop) the T1Controller for link ohN
          */
-        uint32_t ttcGenToggle(uint32_t ohN, bool enable);
+        void ttcGenToggle(uint32_t ohN, bool enable);
     };
   }
 }

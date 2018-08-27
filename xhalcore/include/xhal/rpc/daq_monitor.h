@@ -75,9 +75,8 @@ namespace xhal {
          *
          * @param noh Number of expected optical links, default value 12
          * @param ohMask A 12 bit number which specifies which optohybrids to read from.  Having a value of 1 in the n^th bit indicates that the n^th optohybrid should be considered.
-         * @return an map of monitoring values
+         * @return a nested map of monitoring values, outer key is ohN, value is a PyDictUint32<std::string> which maps register to value
          */
-        //PyDictVecUint32<int> getmonOHSCAmain(uint32_t noh = 12, uint32_t ohMask = 0xfff);
         NestedPyDict<int,PyDictUint32<std::string> > getmonOHSCAmain(uint32_t noh = 12, uint32_t ohMask = 0xfff);
     };
   }

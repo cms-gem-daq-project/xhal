@@ -1,6 +1,8 @@
 #ifndef AMC_H
 #define AMC_H
 
+#include <string>
+#include "xhal/utils/PyTypes.h"
 #include "xhal/XHALDevice.h"
 
 namespace xhal {
@@ -27,17 +29,17 @@ namespace xhal {
                 /**
                  *  @brief As getOHVFATMask(...) but for all optohybrids specified in ohMask
                  *  @param ohMask A 12 bit number which specifies which optohybrids to read from.  Having a value of 1 in the n^th bit indicates that the n^th optohybrid should be considered.
-                 *  @param ohVfatMaskArray Pointer to an array of length 12.  After the call completes each element will be the bitmask of chip positions determining which chips to use for the optohybrid number corresponding to the element index.
+                 *  @returns a PyListUint32 of length 12 where each element is the bitmask of chip positions determining which chips to use for the optohybrid number corresponding to the element index.
                  */
-                uint32_t getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVfatMaskArray);
+                PyListUint32 getOHVFATMaskMultiLink(uint32_t ohMask=0xfff);
 
                 /**
                  *  @brief SBIT readout from optohybrid ohN for a number of seconds given by acquireTime; data is written to a file directory specified by outFilePath
                  *  @param ohN Optohybrid optical link number
                  *  @param acquireTime acquisition time on the wall clock in seconds
-                 *  @return An integer from the set {0, 1, EIO}; where 0 indicates successful completion, 1 indicates an RPC error, and EIO is a platform dependent error code representing a file IO error
+                 *  @param outFilePath std::string indicating the filepath that output files should be stored in
                  */
-                uint32_t sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFilePath);
+                void sbitReadOut(uint32_t ohN, uint32_t acquireTime, std::string outFilePath);
         }; //End class AMC
     } //End namespace rpc
 } //End namespace xhal

@@ -1,6 +1,7 @@
 #include <boost/python.hpp>
 #include "xhal/utils/Exception.h"
 #include "xhal/XHALDevice.h"
+#include "xhal/utils/CalParamTypes.h"
 #include "xhal/utils/PyTypes.h"
 #include "xhal/rpc/amc.h"
 #include "xhal/rpc/calibration_routines.h"
@@ -50,6 +51,12 @@ PY_EXCEPTION_TRANSLATOR(translate_XHALRPCNotConnectedException,xhal::utils::XHAL
 uint32_t (xhal::XHALDevice::*readReg_byname)(std::string regName) = &xhal::XHALDevice::readReg;
 uint32_t (xhal::XHALDevice::*readReg_byaddress)(uint32_t address) = &xhal::XHALDevice::readReg;
 
+//AMC
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getOHVFATMaskMultiLink_overloads, getOHVFATMaskMultiLink, 0, 1)
+
+//CalRoutines
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(sbitRateScan_overloads, sbitRateScan, 1, 3)
+
 //DaqMonitor
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonTRIGGERmain_overloads, getmonTRIGGERmain, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonTRIGGEROHmain_overloads, getmonTRIGGEROHmain, 0, 1)
@@ -58,8 +65,8 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonOHmain_overloads, getmonOHmain, 0, 
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonOHSCAmain_overloads, getmonOHSCAmain, 0, 2)
 
 //VFAT3
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(readVFAT3ADC_overloads, readVFAT3ADC, 2, 4)
-BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(readVFAT3ADCMultiLink_overloads, readVFAT3ADCMultiLink, 3, 4)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(readVFAT3ADC_overloads, readVFAT3ADC, 1, 3)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(readVFAT3ADCMultiLink_overloads, readVFAT3ADCMultiLink, 2, 3)
 
 BOOST_PYTHON_MODULE(xhalpy){
   using namespace boost::python;
@@ -104,7 +111,7 @@ BOOST_PYTHON_MODULE(xhalpy){
 
   class_<xhal::rpc::AMC>("AMC", init<const std::string&, const std::string&>())
     .def("getOHVFATMask",&xhal::rpc::AMC::getOHVFATMask)
-    .def("getOHVFATMaskMultiLink",&xhal::rpc::AMC::getOHVFATMaskMultiLink)
+    .def("getOHVFATMaskMultiLink",&xhal::rpc::AMC::getOHVFATMaskMultiLink,getOHVFATMaskMultiLink_overloads())
     .def("sbitReadOut",&xhal::rpc::AMC::sbitReadOut);
 
   class_<xhal::rpc::CalRoutines>("CalRoutines", init<const std::string&>())
@@ -112,7 +119,7 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("checkSbitRateWithCalPulse",&xhal::rpc::CalRoutines::checkSbitRateWithCalPulse)
     .def("genScan",&xhal::rpc::CalRoutines::genScan)
     .def("genChannelScan",&xhal::rpc::CalRoutines::genChannelScan)
-    .def("sbitRateScan",&xhal::rpc::CalRoutines::sbitRateScan)
+    .def("sbitRateScan",&xhal::rpc::CalRoutines::sbitRateScan,sbitRateScan_overloads())
     .def("ttcGenConf",&xhal::rpc::CalRoutines::ttcGenConf)
     .def("ttcGenToggle",&xhal::rpc::CalRoutines::ttcGenToggle);
 
@@ -124,6 +131,41 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("getmonOHmain",&xhal::rpc::DaqMonitor::getmonOHmain,getmonOHmain_overloads())
     .def("getmonDAQmain",&xhal::rpc::DaqMonitor::getmonDAQmain)
     .def("getmonOHSCAmain",&xhal::rpc::DaqMonitor::getmonOHSCAmain,getmonOHSCAmain_overloads());
+
+  class_<xhal::ParamCalPulse>("ParamCalPulse")
+    .def_readwrite("enable", &xhal::ParamCalPulse::enable)
+    .def_readwrite("isCurrent", &xhal::ParamCalPulse::isCurrent)
+    .def_readwrite("duration", &xhal::ParamCalPulse::duration)
+    .def_readwrite("extVoltStep", &xhal::ParamCalPulse::extVoltStep)
+    .def_readwrite("height", &xhal::ParamCalPulse::height)
+    .def_readwrite("phase", &xhal::ParamCalPulse::phase)
+    .def_readwrite("polarity", &xhal::ParamCalPulse::polarity)
+    .def_readwrite("scaleFactor", &xhal::ParamCalPulse::scaleFactor);
+
+  class_<xhal::ParamScan>("ParamScan")
+    .def_readwrite("ohN", &xhal::ParamScan::ohN)
+    .def_readwrite("ohMask", &xhal::ParamScan::ohMask)
+    .def_readwrite("vfatN", &xhal::ParamScan::vfatN)
+    .def_readwrite("vfatMask", &xhal::ParamScan::vfatMask)
+    .def_readwrite("chan", &xhal::ParamScan::chan)
+    .def_readwrite("useUltra", &xhal::ParamScan::useUltra)
+    .def_readwrite("useExtTrig", &xhal::ParamScan::useExtTrig)
+    .def_readwrite("dacMax", &xhal::ParamScan::dacMax)
+    .def_readwrite("dacMin", &xhal::ParamScan::dacMin)
+    .def_readwrite("dacSelect", &xhal::ParamScan::dacSelect)
+    .def_readwrite("dacStep", &xhal::ParamScan::dacStep)
+    .def_readwrite("nevts", &xhal::ParamScan::nevts)
+    .def_readwrite("waitTime", &xhal::ParamScan::waitTime)
+    .def_readwrite("scanReg", &xhal::ParamScan::scanReg);
+
+  class_<xhal::ParamTtcGen>("ParamTtcGen")
+    .def_readwrite("enable", &xhal::ParamTtcGen::enable)
+    .def_readwrite("L1Ainterval", &xhal::ParamTtcGen::L1Ainterval)
+    .def_readwrite("mode", &xhal::ParamTtcGen::mode)
+    .def_readwrite("nPulses", &xhal::ParamTtcGen::nPulses)
+    .def_readwrite("pulseDelay", &xhal::ParamTtcGen::pulseDelay)
+    .def_readwrite("pulseRate", &xhal::ParamTtcGen::pulseRate)
+    .def_readwrite("type", &xhal::ParamTtcGen::type);
 
   class_<xhal::rpc::Optohybrid>("Optohybrid", init<const std::string&, const std::string&>())
     .def("broadcastRead",&xhal::rpc::Optohybrid::broadcastRead)

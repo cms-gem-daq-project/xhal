@@ -1,4 +1,7 @@
 #include <array>
+#include <cstring>
+#include <stdexcept>
+#include <string>
 #include "xhal/rpc/vfat3.h"
 
 xhal::rpc::VFAT3::VFAT3(const std::string& board_domain_name, const std::string& address_table_filename):
@@ -7,7 +10,7 @@ xhal::rpc::VFAT3::VFAT3(const std::string& board_domain_name, const std::string&
   this->loadModule("vfat3","vfat3 v1.0.1");
 }
 
-uint32_t xhal::rpc::VFAT3::configureVFAT3s(uint32_t ohN, uint32_t vfatMask)
+void xhal::rpc::VFAT3::configureVFAT3s(uint32_t ohN, uint32_t vfatMask)
 {
     req = wisc::RPCMsg("vfat3.configureVFAT3s");
     req.set_word("vfatMask",vfatMask);
@@ -19,13 +22,12 @@ uint32_t xhal::rpc::VFAT3::configureVFAT3s(uint32_t ohN, uint32_t vfatMask)
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+    return;
 }
 
-uint32_t xhal::rpc::VFAT3::configureVFAT3DacMonitor(uint32_t ohN, uint32_t vfatMask, uint32_t dacSelect){
+void xhal::rpc::VFAT3::configureVFAT3DacMonitor(uint32_t ohN, uint32_t vfatMask, uint32_t dacSelect){
     req = wisc::RPCMsg("vfat3.configureVFAT3DacMonitor");
 
     req.set_word("ohN",ohN);
@@ -38,17 +40,20 @@ uint32_t xhal::rpc::VFAT3::configureVFAT3DacMonitor(uint32_t ohN, uint32_t vfatM
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+    return;
 } //End configureVFAT3DacMonitor(...)
 
-uint32_t xhal::rpc::VFAT3::configureVFAT3DacMonitorMultiLink(uint32_t ohMask, uint32_t *ohVfatMaskArray, uint32_t dacSelect){
+void xhal::rpc::VFAT3::configureVFAT3DacMonitorMultiLink(uint32_t ohMask, PyListUint32 &ohVfatMaskArray, uint32_t dacSelect){
     req = wisc::RPCMsg("vfat3.configureVFAT3DacMonitorMultiLink");
 
+    if(ohVfatMaskArray.size() != 12){
+        throw std::length_error("ohVfatMaskArray size is " + std::to_string(ohVfatMaskArray.size()) + " but expected to be 12");
+    }
+
     req.set_word("ohMask",ohMask);
-    req.set_word_array("ohVfatMaskArray",ohVfatMaskArray,12);
+    req.set_word_array("ohVfatMaskArray",ohVfatMaskArray);
     req.set_word("dacSelect",dacSelect);
 
     try {
@@ -57,13 +62,12 @@ uint32_t xhal::rpc::VFAT3::configureVFAT3DacMonitorMultiLink(uint32_t ohMask, ui
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+    return;
 } //End configureVFAT3DacMonitor(...)
 
-uint32_t xhal::rpc::VFAT3::getChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatMask, uint32_t *chanRegData)
+PyListUint32 xhal::rpc::VFAT3::getChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatMask)
 {
     req = wisc::RPCMsg("vfat3.getChannelRegistersVFAT3");
     req.set_word("ohN",ohN);
@@ -75,23 +79,20 @@ uint32_t xhal::rpc::VFAT3::getChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatM
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    const uint32_t size = 3072;
+    PyListUint32 chanRegData;
     if (rsp.get_key_exists("chanRegData")) {
-        ASSERT(rsp.get_word_array_size("chanRegData") == size);
-        rsp.get_word_array("chanRegData", chanRegData);
+        chanRegData = rsp.get_word_array("chanRegData");
     } else {
-        printf("No channel register data found");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no channel register data found");
     }
 
-    return 0;
+    return chanRegData;
 }
 
-uint32_t xhal::rpc::VFAT3::readVFAT3ADC(uint32_t ohN, uint32_t *adcData, bool useExtRefADC, uint32_t vfatMask){
+PyListUint32 xhal::rpc::VFAT3::readVFAT3ADC(uint32_t ohN, bool useExtRefADC, uint32_t vfatMask){
     req = wisc::RPCMsg("vfat3.readVFAT3ADC");
 
     req.set_word("ohN",ohN);
@@ -104,27 +105,24 @@ uint32_t xhal::rpc::VFAT3::readVFAT3ADC(uint32_t ohN, uint32_t *adcData, bool us
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    const uint32_t size = 24;
+    PyListUint32 adcData;
     if (rsp.get_key_exists("adcData")) {
-        ASSERT(rsp.get_word_array_size("adcData") == size);
-        rsp.get_word_array("adcData", adcData);
+        adcData = rsp.get_word_array("adcData");
     } else {
-        printf("No channel register data found");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no ADC data found");
     }
 
-    return 0;
+    return adcData;
 } //End readVFAT3ADC(...)
 
-uint32_t xhal::rpc::VFAT3::readVFAT3ADCMultiLink(uint32_t ohMask, uint32_t *ohVfatMaskArray, uint32_t *adcDataAll, bool useExtRefADC){
+PyListUint32 xhal::rpc::VFAT3::readVFAT3ADCMultiLink(uint32_t ohMask, PyListUint32 &ohVfatMaskArray, bool useExtRefADC){
     req = wisc::RPCMsg("vfat3.readVFAT3ADCMultiLink");
 
     req.set_word("ohMask",ohMask);
-    req.set_word_array("ohVfatMaskArray",ohVfatMaskArray, 12);
+    req.set_word_array("ohVfatMaskArray",ohVfatMaskArray);
     req.set_word("useExtRefADC", useExtRefADC);
 
     try {
@@ -133,34 +131,31 @@ uint32_t xhal::rpc::VFAT3::readVFAT3ADCMultiLink(uint32_t ohMask, uint32_t *ohVf
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    const uint32_t size = 12*24;
+    PyListUint32 adcDataAll;
     if (rsp.get_key_exists("adcDataAll")) {
-        ASSERT(rsp.get_word_array_size("adcDataAll") == size);
-        rsp.get_word_array("adcDataAll", adcDataAll);
+        adcDataAll = rsp.get_word_array("adcDataAll");
     } else {
-        printf("No channel register data found");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no ADC data found");
     }
 
-    return 0;
+    return adcDataAll;
 } //End readVFAT3ADCMultiLink(...)
 
-uint32_t xhal::rpc::VFAT3::setChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatMask, uint32_t *calEnable, uint32_t *masks, uint32_t *trimARM, uint32_t *trimARMPol, uint32_t *trimZCC, uint32_t *trimZCCPol)
+void xhal::rpc::VFAT3::setChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatMask, PyListUint32 &calEnable, PyListUint32 &masks, PyListUint32 &trimARM, PyListUint32 &trimARMPol, PyListUint32 &trimZCC, PyListUint32 &trimZCCPol)
 {
     req = wisc::RPCMsg("vfat3.setChannelRegistersVFAT3");
     req.set_word("ohN",ohN);
     req.set_word("vfatMask",vfatMask);
 
-    req.set_word_array("calEnable",calEnable,3072);
-    req.set_word_array("masks",masks,3072);
-    req.set_word_array("trimARM",trimARM,3072);
-    req.set_word_array("trimARMPol",trimARMPol,3072);
-    req.set_word_array("trimZCC",trimZCC,3072);
-    req.set_word_array("trimZCCPol",trimZCCPol,3072);
+    req.set_word_array("calEnable",calEnable);
+    req.set_word_array("masks",masks);
+    req.set_word_array("trimARM",trimARM);
+    req.set_word_array("trimARMPol",trimARMPol);
+    req.set_word_array("trimZCC",trimZCC);
+    req.set_word_array("trimZCCPol",trimZCCPol);
 
     try {
         rsp = rpc.call_method(req);
@@ -168,20 +163,19 @@ uint32_t xhal::rpc::VFAT3::setChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatM
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+    return;
 }
 
-uint32_t xhal::rpc::VFAT3::setChannelRegistersVFAT3Simple(uint32_t ohN, uint32_t vfatMask, uint32_t *chanRegData)
+void xhal::rpc::VFAT3::setChannelRegistersVFAT3Simple(uint32_t ohN, uint32_t vfatMask, PyListUint32 &chanRegData)
 {
     req = wisc::RPCMsg("vfat3.setChannelRegistersVFAT3");
     req.set_word("ohN",ohN);
     req.set_word("vfatMask",vfatMask);
     req.set_word("simple",true);
 
-    req.set_word_array("chanRegData",chanRegData,3072);
+    req.set_word_array("chanRegData",chanRegData);
 
     try {
         rsp = rpc.call_method(req);
@@ -189,8 +183,7 @@ uint32_t xhal::rpc::VFAT3::setChannelRegistersVFAT3Simple(uint32_t ohN, uint32_t
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+    return;
 }

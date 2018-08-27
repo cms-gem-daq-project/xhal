@@ -1,5 +1,5 @@
-#include "errno.h" //See: http://www.virtsync.com/c-error-codes-include-errno
 #include <fstream>
+#include <ios>
 #include <string>
 #include <vector>
 #include "xhal/rpc/amc.h"
@@ -21,14 +21,16 @@ uint32_t xhal::rpc::AMC::getOHVFATMask(uint32_t ohN){
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 0xffffffff;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+    }
+    else if (!rsp.get_key_exists("vfatMask")) {
+        throw xhal::utils::Exception("RPC exception: no VFAT Mask data found");
     }
 
     return rsp.get_word("vfatMask");
 } //End getOHVFATMask(...)
 
-uint32_t xhal::rpc::AMC::getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVfatMaskArray){
+PyListUint32 xhal::rpc::AMC::getOHVFATMaskMultiLink(uint32_t ohMask){
     req = wisc::RPCMsg("amc.getOHVFATMaskMultiLink");
 
     req.set_word("ohMask", ohMask);
@@ -39,22 +41,16 @@ uint32_t xhal::rpc::AMC::getOHVFATMaskMultiLink(uint32_t ohMask, uint32_t * ohVf
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    const uint32_t size = 12;
-    if (rsp.get_key_exists("ohVfatMaskArray")) {
-        ASSERT(rsp.get_word_array_size("ohVfatMaskArray") == size);
-        rsp.get_word_array("ohVfatMaskArray", ohVfatMaskArray);
-    } else {
-        printf("No ohVfatMaskArray key found");
-        return 1;
+    else if (!rsp.get_key_exists("ohVfatMaskArray")) {
+        throw xhal::utils::Exception("RPC exception: no OH VFAT Mask data found");
     }
 
-    return 0;
+    return rsp.get_word_array("ohVfatMaskArray");
 } //End getOHVFATMaskMultiLink(...)
 
-uint32_t xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFilePath){
+void xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, std::string outFilePath){
     req = wisc::RPCMsg("amc.sbitReadOut");
 
     req.set_word("ohN",ohN);
@@ -74,10 +70,9 @@ uint32_t xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * 
         std::fstream fileTrigData;
         fileTrigData.open(strFileName, std::ios::out);
         if (!fileTrigData.is_open()){
-            printf("sbitReadOut(): Error while trying to open file %s\n",outFilePath);
+            printf("sbitReadOut(): Error while trying to open file %s\n",outFilePath.c_str());
             printf("sbitReadOut(): Perhaps you do not have write permissions or the filepath does not exist?\n");
-            printf("sbitReadOut(): Exiting\n");
-            return EIO;
+            throw std::ios_base::failure("could not open output file");
         }
 
         //Call RPC Method
@@ -88,9 +83,8 @@ uint32_t xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * 
 
         //Check for RPC Error
         if (rsp.get_key_exists("error")) {
-            printf("sbitReadOut(): Caught an error: %s\n", (rsp.get_string("error")).c_str());
             fileTrigData.close();
-            return 1;
+            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         }
 
         //If max network size reached before acquireTime was reached
@@ -107,8 +101,7 @@ uint32_t xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * 
         if (rsp.get_key_exists("storedSbits")) {
             vec_sbitData = rsp.get_word_array("storedSbits");
         } else {
-            printf("sbitReadOut(): No sbit data found");
-            return 1;
+            throw xhal::utils::Exception("RPC exception: no storedSbits found");
         }
 
         fileTrigData<<"evtNum/i:";
@@ -143,5 +136,5 @@ uint32_t xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * 
         runNum++;
     } //End Acquisition Loop
 
-    return 0;
+    return;
 } //End sbitReadOut(...)

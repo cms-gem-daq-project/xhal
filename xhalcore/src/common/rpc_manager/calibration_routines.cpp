@@ -1,18 +1,21 @@
+#include <stdexcept>
 #include "xhal/rpc/calibration_routines.h"
 
-uint32_t xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse(uint32_t ohN, uint32_t vfatN, uint32_t mask, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t nevts, uint32_t L1Ainterval, uint32_t pulseDelay, uint32_t *data)
+PyListUint32 xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams, xhal::ParamTtcGen &ttcGenParams)
 {
     req = wisc::RPCMsg("calibration_routines.checkSbitMappingWithCalPulse");
 
-    req.set_word("ohN", ohN);
-    req.set_word("vfatN", vfatN);
-    req.set_word("mask", mask);
-    req.set_word("useCalPulse", useCalPulse);
-    req.set_word("currentPulse", currentPulse);
-    req.set_word("calScaleFactor", calScaleFactor);
-    req.set_word("nevts", nevts);
-    req.set_word("L1Ainterval", L1Ainterval);
-    req.set_word("pulseDelay", pulseDelay);
+    req.set_word("ohN", scanParams.ohN);
+    req.set_word("vfatN", scanParams.vfatN);
+    req.set_word("mask", scanParams.vfatMask);
+    req.set_word("nevts", scanParams.nevts);
+
+    req.set_word("useCalPulse", calPulseParams.enable);
+    req.set_word("currentPulse", calPulseParams.isCurrent);
+    req.set_word("calScaleFactor", calPulseParams.scaleFactor);
+
+    req.set_word("L1Ainterval", ttcGenParams.L1Ainterval);
+    req.set_word("pulseDelay", ttcGenParams.pulseDelay);
 
     try {
         rsp = rpc.call_method(req);
@@ -20,36 +23,35 @@ uint32_t xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse(uint32_t ohN, uint
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    const uint32_t size = 128*8*nevts;
+    PyListUint32 data;
     if (rsp.get_key_exists("data")){
-        ASSERT(rsp.get_word_array_size("data") == size);
-        rsp.get_word_array("data",data);
+        data = rsp.get_word_array("data");
     }
     else{
-        printf("No key found for data");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no SBIT mapping data found");
     }
 
-    return 0;
+    return data;
 } //End checkSbitMappingWithCalPulse()
 
-uint32_t xhal::rpc::CalRoutines::checkSbitRateWithCalPulse(uint32_t ohN, uint32_t vfatN, uint32_t mask, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t waitTime, uint32_t pulseRate, uint32_t pulseDelay, uint32_t *outDataCTP7Rate, uint32_t *outDataFPGAClusterCntRate, uint32_t *outDataVFATSBits)
+PyDictVecUint32<std::string> xhal::rpc::CalRoutines::checkSbitRateWithCalPulse(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams, xhal::ParamTtcGen &ttcGenParams)
 {
     req = wisc::RPCMsg("calibration_routines.checkSbitRateWithCalPulse");
 
-    req.set_word("ohN", ohN);
-    req.set_word("vfatN", vfatN);
-    req.set_word("mask", mask);
-    req.set_word("useCalPulse", useCalPulse);
-    req.set_word("currentPulse", currentPulse);
-    req.set_word("calScaleFactor", calScaleFactor);
-    req.set_word("waitTime", waitTime);
-    req.set_word("pulseRate", pulseRate);
-    req.set_word("pulseDelay", pulseDelay);
+    req.set_word("ohN", scanParams.ohN);
+    req.set_word("vfatN", scanParams.vfatN);
+    req.set_word("mask", scanParams.vfatMask);
+    req.set_word("waitTime", scanParams.waitTime);
+
+    req.set_word("useCalPulse", calPulseParams.enable);
+    req.set_word("currentPulse", calPulseParams.isCurrent);
+    req.set_word("calScaleFactor", calPulseParams.scaleFactor);
+
+    req.set_word("pulseRate", ttcGenParams.pulseRate);
+    req.set_word("pulseDelay", ttcGenParams.pulseDelay);
 
     try {
         rsp = rpc.call_method(req);
@@ -57,60 +59,54 @@ uint32_t xhal::rpc::CalRoutines::checkSbitRateWithCalPulse(uint32_t ohN, uint32_
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    const uint32_t size = 128;
+    PyDictVecUint32<std::string> ret_dictRateData;
     if (rsp.get_key_exists("outDataCTP7Rate")) {
-        ASSERT(rsp.get_word_array_size("outDataCTP7Rate") == size);
-        rsp.get_word_array("outDataCTP7Rate", outDataCTP7Rate);
+        ret_dictRateData["CTP7"]=rsp.get_word_array("outDataCTP7Rate");
     }
     else{
-        printf("No key found for outDataCTP7Rate");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no SBIT rate data from CTP7 found");
     }
 
     if (rsp.get_key_exists("outDataFPGAClusterCntRate")) {
-        ASSERT(rsp.get_word_array_size("outDataFPGAClusterCntRate") == size);
-        rsp.get_word_array("outDataFPGAClusterCntRate", outDataFPGAClusterCntRate);
+        ret_dictRateData["FPGA"]=rsp.get_word_array("outDataFPGARate");
     }
     else{
-        printf("No key found for outDataFPGAClusterCntRate");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no SBIT rate data from FPGA found");
     }
 
     if (rsp.get_key_exists("outDataVFATSBits")) {
-        ASSERT(rsp.get_word_array_size("outDataVFATSBits") == size);
-        rsp.get_word_array("outDataVFATSBits", outDataVFATSBits);
+        ret_dictRateData["VFAT"]=rsp.get_word_array("outDataVFATRate");
     }
     else{
-        printf("No key found for outDataVFATSBits");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no SBIT rate data from VFAT found");
     }
 
-    return 0;
+    return ret_dictRateData;
 } //End checkSbitRateWithCalPulse()
 
-uint32_t xhal::rpc::CalRoutines::genScan(uint32_t nevts, uint32_t ohN, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep, uint32_t ch, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t mask, char * scanReg, bool useUltra, bool useExtTrig, uint32_t * result)
+PyListUint32 xhal::rpc::CalRoutines::genScan(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams)
 {
     req = wisc::RPCMsg("calibration_routines.genScan");
 
-    req.set_word("nevts", nevts);
-    req.set_word("ohN", ohN);
-    req.set_word("dacMin", dacMin);
-    req.set_word("dacMax", dacMax);
-    req.set_word("dacStep", dacStep);
-    req.set_word("ch", ch);
-    req.set_word("useCalPulse", useCalPulse);
-    req.set_word("currentPulse", currentPulse);
-    req.set_word("calScaleFactor", calScaleFactor);
-    req.set_word("mask", mask);
-    if(useUltra){
-        req.set_word("useUltra", useUltra);
+    req.set_word("nevts",scanParams.nevts);
+    req.set_word("ohN",scanParams.ohN);
+    req.set_word("dacMin",scanParams.dacMin);
+    req.set_word("dacMax",scanParams.dacMax);
+    req.set_word("dacStep",scanParams.dacStep);
+    req.set_word("ch",scanParams.chan);
+    req.set_word("mask",scanParams.vfatMask);
+    if(scanParams.useUltra){
+        req.set_word("useUltra",scanParams.useUltra);
     }
-    req.set_word("useExtTrig", useExtTrig);
-    req.set_string("scanReg", std::string(scanReg));
+    req.set_word("useExtTrig",scanParams.useExtTrig);
+    req.set_string("scanReg",scanParams.scanReg);
+
+    req.set_word("useCalPulse", calPulseParams.enable);
+    req.set_word("currentPulse", calPulseParams.isCurrent);
+    req.set_word("calScaleFactor", calPulseParams.scaleFactor);
 
     try {
         rsp = rpc.call_method(req);
@@ -118,39 +114,43 @@ uint32_t xhal::rpc::CalRoutines::genScan(uint32_t nevts, uint32_t ohN, uint32_t 
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
-    }
-    const uint32_t size = (dacMax - dacMin+1)*24/dacStep;
-    if (rsp.get_key_exists("data")) {
-        ASSERT(rsp.get_word_array_size("data") == size);
-        rsp.get_word_array("data", result);
-    } else {
-        printf("No data key found");
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    return 0;
+    PyListUint32 data;
+    if (rsp.get_key_exists("data")) {
+        data = rsp.get_word_array("data");
+    } else {
+        throw xhal::utils::Exception("RPC exception: no data from generic scan found");
+    }
+
+    return data;
 }
 
-uint32_t xhal::rpc::CalRoutines::genChannelScan(uint32_t nevts, uint32_t ohN, uint32_t mask, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, bool useExtTrig, char * scanReg, bool useUltra, uint32_t * result)
+PyListUint32 xhal::rpc::CalRoutines::genChannelScan(xhal::ParamScan &scanParams, xhal::ParamCalPulse &calPulseParams)
 {
     req = wisc::RPCMsg("calibration_routines.genChannelScan");
 
-    req.set_word("nevts", nevts);
-    req.set_word("ohN", ohN);
-    req.set_word("mask", mask);
-    req.set_word("dacMin", dacMin);
-    req.set_word("dacMax", dacMax);
-    req.set_word("dacStep", dacStep);
-    req.set_word("useCalPulse", useCalPulse);
-    req.set_word("currentPulse", currentPulse);
-    req.set_word("calScaleFactor", calScaleFactor);
-    req.set_word("useExtTrig", useExtTrig);
-    if(useUltra){
-        req.set_word("useUltra", useUltra);
+    req.set_word("nevts",scanParams.nevts);
+    req.set_word("ohN",scanParams.ohN);
+    req.set_word("mask",scanParams.vfatMask);
+    req.set_word("dacMin",scanParams.dacMin);
+    req.set_word("dacMax",scanParams.dacMax);
+    req.set_word("dacStep",scanParams.dacStep);
+    if(scanParams.useUltra){
+        req.set_word("useUltra",scanParams.useUltra);
     }
-    req.set_string("scanReg", std::string(scanReg));
+    req.set_word("useExtTrig",scanParams.useExtTrig);
+    req.set_string("scanReg",scanParams.scanReg);
+
+    req.set_word("useCalPulse", calPulseParams.enable);
+    req.set_word("currentPulse", calPulseParams.isCurrent);
+    req.set_word("calScaleFactor", calPulseParams.scaleFactor);
+
+    uint32_t dataSize = sizeof(uint32_t)*24*128*(scanParams.dacMax-scanParams.dacMin+1)/scanParams.dacStep;
+    if(dataSize > 65535){
+        throw std::length_error("dataSize for generic channel scan exceeds TCP/IP maximum packet size, please try to run again for a smaller scan range");
+    }
 
     try {
         rsp = rpc.call_method(req);
@@ -158,107 +158,102 @@ uint32_t xhal::rpc::CalRoutines::genChannelScan(uint32_t nevts, uint32_t ohN, ui
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
-    }
-    const uint32_t size = 24*128*(dacMax-dacMin+1)/dacStep;
-    if (rsp.get_key_exists("data")) {
-        ASSERT(rsp.get_word_array_size("data") == size);
-        rsp.get_word_array("data", result);
-    } else {
-        printf("No data key found");
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    return 0;
+    PyListUint32 data;
+    if (rsp.get_key_exists("data")) {
+        data = rsp.get_word_array("data");
+    } else {
+        throw xhal::utils::Exception("RPC exception: no data from generic channel scan found");
+    }
+
+    return data;
 } //End genChannelScan()
 
-uint32_t xhal::rpc::CalRoutines::sbitRateScan(uint32_t ohN, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep, uint32_t ch, uint32_t maskOh, bool invertVFATPos, char * scanReg, uint32_t waitTime, uint32_t * resultDacVal, uint32_t * resultTrigRate, uint32_t * resultTrigRatePerVFAT, bool isParallel)
+PyDictVecUint32<std::string> xhal::rpc::CalRoutines::sbitRateScan(xhal::ParamScan &scanParams, bool invertVFATPos, bool isParallel)
 {
     req = wisc::RPCMsg("calibration_routines.sbitRateScan");
 
 
-    req.set_word("ohN", ohN);
-    req.set_word("maskOh", maskOh);
+    req.set_word("ohN",scanParams.ohN);
+    req.set_word("mask",scanParams.vfatMask);
+    req.set_word("dacMin",scanParams.dacMin);
+    req.set_word("dacMax",scanParams.dacMax);
+    req.set_word("dacStep",scanParams.dacStep);
+    req.set_word("ch",scanParams.chan);
+    req.set_string("scanReg",scanParams.scanReg);
+    req.set_word("waitTime",scanParams.waitTime);
+
     req.set_word("invertVFATPos", invertVFATPos);
     req.set_word("isParallel", isParallel);
-    req.set_word("dacMin", dacMin);
-    req.set_word("dacMax", dacMax);
-    req.set_word("dacStep", dacStep);
-    req.set_word("ch", ch);
-    req.set_string("scanReg", std::string(scanReg));
-    req.set_word("waitTime", waitTime);
 
     //Check to make sure (dacMax-dacMin+1)/dacStep is an integer!
-    if( 0 != ((dacMax - dacMin + 1) % dacStep) ){
-        printf("Caught an error: (dacMax - dacMin + 1)/dacStep must be an integer!\n");
-        return 1;
+    if( 0 != ((scanParams.dacMax - scanParams.dacMin + 1) % scanParams.dacStep) ){
+        throw std::logic_error("Caught an error: (dacMax - dacMin + 1)/dacStep must be an integer!");
     }
-    const uint32_t size = (dacMax - dacMin+1)/dacStep;
 
     try {
         rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
+    PyDictVecUint32<std::string> ret_dictRateData;
     if (rsp.get_key_exists("error")) {
-        printf("Caught an error: %s\n", (rsp.get_string("error")).c_str());
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
-    if (rsp.get_key_exists("data_dacVal")) {
-        ASSERT(rsp.get_word_array_size("data_dacVal") == size);
-        rsp.get_word_array("data_dacVal", resultDacVal);
+    if (rsp.get_key_exists("outDataDacValue")) {
+        ret_dictRateData["DACVAL"] = rsp.get_word_array("outDataDacValue");
     } else {
-        printf("No key found for data dac values");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no dac values from sbit rate scan found");
     }
 
-    if (rsp.get_key_exists("data_trigRate")) {
-        ASSERT(rsp.get_word_array_size("data_trigRate") == size);
-        rsp.get_word_array("data_trigRate", resultTrigRate);
+    if (rsp.get_key_exists("outDataCTP7Rate")) {
+        ret_dictRateData["CTP7Rate"] = rsp.get_word_array("outDataCTP7Rate");
     } else {
-        printf("No key found for data trigger rate values");
-        return 1;
+        throw xhal::utils::Exception("RPC exception: no data for CTP7 rate from sbit rate scan found");
     }
 
     if(isParallel){
-        if (rsp.get_key_exists("data_trigRatePerVFAT")) {
-            ASSERT(rsp.get_word_array_size("data_trigRatePerVFAT") == (size*24));
-            rsp.get_word_array("data_trigRatePerVFAT", resultTrigRatePerVFAT);
+        if (rsp.get_key_exists("outDataVFATRate")) {
+            ret_dictRateData["VFATRate"] = rsp.get_word_array("outDataVFATRate");
         }
         else{
-            printf("No key found for data trigger rate per vfat values");
-            return 1;
+            throw xhal::utils::Exception("RPC exception: no data for VFAT rate from sbit rate scan found");
         }
     }
 
-    return 0;
+    return ret_dictRateData;
 } //End sbitRateScan(...)
 
-uint32_t xhal::rpc::CalRoutines::ttcGenConf(uint32_t ohN, uint32_t mode, uint32_t type, uint32_t pulseDelay, uint32_t L1Ainterval, uint32_t nPulses, bool enable)
+void xhal::rpc::CalRoutines::ttcGenConf(uint32_t ohN, xhal::ParamTtcGen &ttcGenParams)
 {
 
     req = wisc::RPCMsg("calibration_routines.ttcGenConf");
+
     req.set_word("ohN", ohN);
-    req.set_word("mode", mode);
-    req.set_word("type", type);
-    req.set_word("pulseDelay", pulseDelay);
-    req.set_word("L1Ainterval", L1Ainterval);
-    req.set_word("nPulses", nPulses);
-    req.set_word("enable", enable);
+
+    req.set_word("mode",ttcGenParams.mode);
+    req.set_word("type",ttcGenParams.type);
+    req.set_word("pulseDelay",ttcGenParams.pulseDelay);
+    req.set_word("L1Ainterval",ttcGenParams.L1Ainterval);
+    req.set_word("nPulses",ttcGenParams.nPulses);
+    req.set_word("enable",ttcGenParams.enable);
+
     try {
         rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+
+    return;
 }
 
-uint32_t xhal::rpc::CalRoutines::ttcGenToggle(uint32_t ohN, bool enable)
+void xhal::rpc::CalRoutines::ttcGenToggle(uint32_t ohN, bool enable)
 {
     req = wisc::RPCMsg("calibration_routines.ttcGenToggle");
     req.set_word("ohN", ohN);
@@ -269,7 +264,8 @@ uint32_t xhal::rpc::CalRoutines::ttcGenToggle(uint32_t ohN, bool enable)
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        return 1;
+        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
-    return 0;
+
+    return;
 } //End ttcGenToggle(...)
