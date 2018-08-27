@@ -38,7 +38,7 @@ namespace xhal {
                  *  @return An integer from the set {0, 1, EIO}; where 0 indicates successful completion, 1 indicates an RPC error, and EIO is a platform dependent error code representing a file IO error
                  */
                 uint32_t sbitReadOut(uint32_t ohN, uint32_t acquireTime, char * outFilePath);
-        } //End class AMC
+        }; //End class AMC
     } //End namespace rpc
 } //End namespace xhal
 
