@@ -49,6 +49,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonTRIGGERmain_overloads, getmonTRIGGE
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonTRIGGEROHmain_overloads, getmonTRIGGEROHmain, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonDAQOHmain_overloads, getmonDAQOHmain, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonOHmain_overloads, getmonOHmain, 0, 1)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(getmonOHSCAmain_overloads, getmonOHSCAmain, 0, 2)
 
 BOOST_PYTHON_MODULE(xhalpy){
   using namespace boost::python;
@@ -88,13 +89,17 @@ BOOST_PYTHON_MODULE(xhalpy){
   class_<PyDictVecUint32<int> >("PyDictVecUint32")
     .def(map_indexing_suite<PyDictVecUint32<int> >() );
 
+  class_<NestedPyDict<int,PyDictUint32<std::string> > >("NestedPyDict")
+    .def(map_indexing_suite<NestedPyDict<int,PyDictUint32<std::string> > >() );
+
   class_<xhal::rpc::DaqMonitor>("DaqMonitor", init<const std::string&>())
     .def("getmonTTCmain",&xhal::rpc::DaqMonitor::getmonTTCmain)
     .def("getmonTRIGGERmain",&xhal::rpc::DaqMonitor::getmonTRIGGERmain,getmonTRIGGERmain_overloads())
     .def("getmonTRIGGEROHmain",&xhal::rpc::DaqMonitor::getmonTRIGGEROHmain,getmonTRIGGEROHmain_overloads())
     .def("getmonDAQOHmain",&xhal::rpc::DaqMonitor::getmonDAQOHmain,getmonDAQOHmain_overloads())
     .def("getmonOHmain",&xhal::rpc::DaqMonitor::getmonOHmain,getmonOHmain_overloads())
-    .def("getmonDAQmain",&xhal::rpc::DaqMonitor::getmonDAQmain);
+    .def("getmonDAQmain",&xhal::rpc::DaqMonitor::getmonDAQmain)
+    .def("getmonOHSCAmain",&xhal::rpc::DaqMonitor::getmonOHSCAmain,getmonOHSCAmain_overloads());
 }
 
 // Converts a C++ map to a python dict
