@@ -8,7 +8,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonTTCmain()
     	rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
-    
+
     try{
         if (rsp.get_key_exists("error")) {
             printf("Error: %s",rsp.get_string("error").c_str());
@@ -195,3 +195,82 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonOHmain(uint32_t noh)
     STANDARD_CATCH;
     return result;
 }
+
+//PyDictVecUint32<int> xhal::rpc::DaqMonitor::getmonOHSCAmain(uint32_t noh, uint32_t ohMask){
+NestedPyDict<int,PyDictUint32<std::string> > xhal::rpc::DaqMonitor::getmonOHSCAmain(uint32_t noh, uint32_t ohMask){
+    req = wisc::RPCMsg("amc.getmonOHSCAmain");
+
+    req.set_word("NOH",noh);
+    req.set_word("ohMask",ohMask);
+    try {
+        rsp = rpc.call_method(req);
+    }
+    STANDARD_CATCH;
+
+    //PyDictVecUint32<int> ret_Dict; //Key is ohN, value is a list
+    NestedPyDict<int,PyDictUint32<std::string> > ret_nestedDict;
+    try{
+        if (rsp.get_key_exists("error")) { //Case Error Exists
+            printf("Error: %s",rsp.get_string("error").c_str());
+            // FIXME raise an exception
+        } //End Case: Error Exists
+        else { //Case: No Error
+            for(int ohN = 0; ohN < noh; ++ohN){ //Loop over number of optohybrids
+                // If this Optohybrid is masked skip it
+                if(((ohMask >> ohN) & 0x0)){
+                    continue;
+                }
+
+                PyDictUint32<std::string> scaVals4ohN;
+                //std::string strKeyName;
+                std::string strOhN = std::to_string(ohN);
+
+                //SCA Temperature
+                scaVals4ohN["SCA_TEMP"] = rsp.get_word("OH" + strOhN + "SCA_TEMP");
+
+                //OH Temperature Sensors
+                for(int tempVal=1; tempVal <= 9; ++tempVal){ //Loop over optohybrid temperature sensors
+                    std::string strTempVal = std::to_string(tempVal);
+                    scaVals4ohN["BOARD_TEMP"+strTempVal]=rsp.get_word("OH" + strOhN + "BOARD_TEMP" + strTempVal);
+                } //End Loop over optohybrid temperature sensors
+
+                //Voltage Monitor - AVCCN
+                scaVals4ohN["AVCCN"] = rsp.get_word("OH" + strOhN + "AVCCN");
+
+                //Voltage Monitor - AVTTN
+                scaVals4ohN["AVTTN"] = rsp.get_word("OH" + strOhN + "AVTTN");
+
+                //Voltage Monitor - 1V0_INT
+                scaVals4ohN["1V0_INT"] = rsp.get_word("OH" + strOhN + "1V0_INT");
+
+                //Voltage Monitor - 1V8F
+                scaVals4ohN["1V8F"] = rsp.get_word("OH" + strOhN + "1V8F");
+
+                //Voltage Monitor - 1V5
+                scaVals4ohN["1V5"] = rsp.get_word("OH" + strOhN + "1V5");
+
+                //Voltage Monitor - 2V5_IO
+                scaVals4ohN["2V5_IO"] = rsp.get_word("OH" + strOhN + "2V5_IO");
+
+                //Voltage Monitor - 3V0
+                scaVals4ohN["3V0"] = rsp.get_word("OH" + strOhN + "3V0");
+
+                //Voltage Monitor - 1V8
+                scaVals4ohN["1V8"] = rsp.get_word("OH" + strOhN + "1V8");
+
+                //Voltage Monitor - VTRX_RSSI2
+                scaVals4ohN["VTRX_RSSI2"] = rsp.get_word("OH" + strOhN + "VTRX_RSSI2");
+
+                //Voltage Monitor - VTRX_RSSI1
+                scaVals4ohN["VTRX_RSSI1"] = rsp.get_word("OH" + strOhN + "VTRX_RSSI1");
+
+                //Store this in output map
+                ret_nestedDict[ohN] = scaVals4ohN;
+            } // End loop over number of optohybrids
+        } //End Case: No Error
+    }
+    STANDARD_CATCH;
+
+    //return ret_Dict;
+    return ret_nestedDict;
+} //End xhal::rpc::DaqMonitor::getmonOHSCAmain
