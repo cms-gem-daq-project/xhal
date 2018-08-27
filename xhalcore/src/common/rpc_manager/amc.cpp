@@ -4,7 +4,7 @@
 #include <vector>
 #include "xhal/rpc/amc.h"
 
-xhal::rpc::AMC3::AMC3(const std::string& board_domain_name, const std::string& address_table_filename):
+xhal::rpc::AMC::AMC(const std::string& board_domain_name, const std::string& address_table_filename):
   xhal::XHALDevice(board_domain_name, address_table_filename)
 {
   this->loadModule("amc","amc v1.0.1");
