@@ -32,9 +32,8 @@ uint32_t xhal::rpc::VFAT3::configureVFAT3DacMonitor(uint32_t ohN, uint32_t vfatM
     req.set_word("vfatMask",vfatMask);
     req.set_word("dacSelect",dacSelect);
 
-    wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
-        rsp = rpc_loc->call_method(req);
+        rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
@@ -52,9 +51,8 @@ uint32_t xhal::rpc::VFAT3::configureVFAT3DacMonitorMultiLink(uint32_t ohMask, ui
     req.set_word_array("ohVfatMaskArray",ohVfatMaskArray,12);
     req.set_word("dacSelect",dacSelect);
 
-    wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
-        rsp = rpc_loc->call_method(req);
+        rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
@@ -100,9 +98,8 @@ uint32_t xhal::rpc::VFAT3::readVFAT3ADC(uint32_t ohN, uint32_t *adcData, bool us
     req.set_word("useExtRefADC", useExtRefADC);
     req.set_word("vfatMask",vfatMask);
 
-    wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
-        rsp = rpc_loc->call_method(req);
+        rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
@@ -130,9 +127,8 @@ uint32_t xhal::rpc::VFAT3::readVFAT3ADCMultiLink(uint32_t ohMask, uint32_t *ohVf
     req.set_word_array("ohVfatMaskArray",ohVfatMaskArray, 12);
     req.set_word("useExtRefADC", useExtRefADC);
 
-    wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
-        rsp = rpc_loc->call_method(req);
+        rsp = rpc.call_method(req);
     }
     STANDARD_CATCH;
 
