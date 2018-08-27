@@ -39,7 +39,7 @@ inline void TRANSLATOR_NAME(EXCEPTION_NAME const& e)                            
   assert(EXCEPTION_OBJ != NULL);                                                     \
   /* Use the Python 'C' API to set up an exception object*/                          \
   PyErr_SetString(EXCEPTION_OBJ, e.msg.c_str());                                     \
-}                                                                    
+}
 #endif
 
 PY_EXCEPTION_TRANSLATOR(translate_XHALException,xhal::utils::XHALException, obj_XHALException)
@@ -70,7 +70,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(readVFAT3ADCMultiLink_overloads, readVFAT
 
 BOOST_PYTHON_MODULE(xhalpy){
   using namespace boost::python;
-  
+
   obj_XHALException = createExceptionClass("XHALException");
   obj_XHALXMLParserException = createExceptionClass("XHALXMLParserException");
   obj_XHALRPCException = createExceptionClass("XHALRPCException");
@@ -81,14 +81,18 @@ BOOST_PYTHON_MODULE(xhalpy){
   register_exception_translator<xhal::utils::XHALRPCException>(&translate_XHALRPCException);
   register_exception_translator<xhal::utils::XHALRPCNotConnectedException>(&translate_XHALRPCNotConnectedException);
 
-  class_<xhal::XHALDevice>("XHALDevice", init<const std::string&, const std::string&>())
-    .def("connect",&xhal::XHALDevice::connect)
-    .def("reconnect",&xhal::XHALDevice::reconnect)
+  class_<xhal::XHALInterface>("XHALInterface", init<const std::string&>())
+    .def("connect",&xhal::XHALInterface::connect)
+    .def("loadModule",&xhal::XHALInterface::loadModule)
+    .def("setLogLevel",&xhal::XHALInterface::setLogLevel);
+
+  class_<xhal::XHALDevice, bases<xhal::XHALInterface> >("XHALDevice", init<const std::string&, const std::string&>())
     .def("disconnect",&xhal::XHALDevice::disconnect)
-    .def("loadModule",&xhal::XHALDevice::loadModule)
-    .def("setLogLevel",&xhal::XHALDevice::setLogLevel)
+    .def("getBlock",&xhal::XHALDevice::getBlock)
+    .def("getList",&xhal::XHALDevice::getList)
     .def("readReg",readReg_byname)
     .def("readReg",readReg_byaddress)
+    .def("reconnect",&xhal::XHALDevice::reconnect)
     .def("writeReg",&xhal::XHALDevice::writeReg);
 
   class_<PyListUint32>("PyListUint32")
@@ -109,12 +113,12 @@ BOOST_PYTHON_MODULE(xhalpy){
   class_<NestedPyDict<int,PyDictUint32<std::string> > >("NestedPyDict")
     .def(map_indexing_suite<NestedPyDict<int,PyDictUint32<std::string> > >() );
 
-  class_<xhal::rpc::AMC>("AMC", init<const std::string&, const std::string&>())
+  class_<xhal::rpc::AMC, bases<xhal::XHALDevice> >("AMC", init<const std::string&, const std::string&>())
     .def("getOHVFATMask",&xhal::rpc::AMC::getOHVFATMask)
     .def("getOHVFATMaskMultiLink",&xhal::rpc::AMC::getOHVFATMaskMultiLink,getOHVFATMaskMultiLink_overloads())
     .def("sbitReadOut",&xhal::rpc::AMC::sbitReadOut);
 
-  class_<xhal::rpc::CalRoutines>("CalRoutines", init<const std::string&>())
+  class_<xhal::rpc::CalRoutines, bases<xhal::XHALInterface> >("CalRoutines", init<const std::string&>())
     .def("checkSbitMappingWithCalPulse",&xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse)
     .def("checkSbitRateWithCalPulse",&xhal::rpc::CalRoutines::checkSbitRateWithCalPulse)
     .def("genScan",&xhal::rpc::CalRoutines::genScan)
@@ -123,7 +127,7 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("ttcGenConf",&xhal::rpc::CalRoutines::ttcGenConf)
     .def("ttcGenToggle",&xhal::rpc::CalRoutines::ttcGenToggle);
 
-  class_<xhal::rpc::DaqMonitor>("DaqMonitor", init<const std::string&>())
+  class_<xhal::rpc::DaqMonitor, bases<xhal::XHALInterface> >("DaqMonitor", init<const std::string&>())
     .def("getmonTTCmain",&xhal::rpc::DaqMonitor::getmonTTCmain)
     .def("getmonTRIGGERmain",&xhal::rpc::DaqMonitor::getmonTRIGGERmain,getmonTRIGGERmain_overloads())
     .def("getmonTRIGGEROHmain",&xhal::rpc::DaqMonitor::getmonTRIGGEROHmain,getmonTRIGGEROHmain_overloads())
@@ -167,7 +171,7 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def_readwrite("pulseRate", &xhal::ParamTtcGen::pulseRate)
     .def_readwrite("type", &xhal::ParamTtcGen::type);
 
-  class_<xhal::rpc::Optohybrid>("Optohybrid", init<const std::string&, const std::string&>())
+  class_<xhal::rpc::Optohybrid, bases<xhal::XHALDevice> >("Optohybrid", init<const std::string&, const std::string&>())
     .def("broadcastRead",&xhal::rpc::Optohybrid::broadcastRead)
     .def("broadcastWrite",&xhal::rpc::Optohybrid::broadcastWrite)
     .def("configureScanModule",&xhal::rpc::Optohybrid::configureScanModule)
@@ -176,11 +180,11 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("getUltraScanResults",&xhal::rpc::Optohybrid::getUltraScanResults)
     .def("stopCalPulse2AllChannels",&xhal::rpc::Optohybrid::stopCalPulse2AllChannels);
 
-  class_<xhal::rpc::Utils>("Utils", init<const std::string&>())
+  class_<xhal::rpc::Utils, bases<xhal::XHALInterface> >("Utils", init<const std::string&>())
     .def("update_atdb",&xhal::rpc::Utils::update_atdb)
     .def("getRegInfoDB",&xhal::rpc::Utils::getRegInfoDB);
 
-  class_<xhal::rpc::VFAT3>("VFAT3", init<const std::string&, const std::string&>())
+  class_<xhal::rpc::VFAT3, bases<xhal::XHALDevice> >("VFAT3", init<const std::string&, const std::string&>())
     .def("configureVFAT3s",&xhal::rpc::VFAT3::configureVFAT3s)
     .def("configureVFAT3DacMonitor",&xhal::rpc::VFAT3::configureVFAT3DacMonitor)
     .def("configureVFAT3DacMonitorMultiLink",&xhal::rpc::VFAT3::configureVFAT3DacMonitorMultiLink)
