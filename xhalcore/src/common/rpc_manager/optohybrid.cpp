@@ -3,6 +3,7 @@
 xhal::rpc::Optohybrid::Optohybrid(const std::string& board_domain_name, const std::string& address_table_filename):
   xhal::XHALDevice(board_domain_name, address_table_filename)
 {
+  m_map_modName_modVer["optohybrid"]="optohybrid v1.0.1";
   this->loadModule("optohybrid","optohybrid v1.0.1");
 }
 

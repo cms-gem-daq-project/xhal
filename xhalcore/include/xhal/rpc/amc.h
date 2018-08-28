@@ -1,3 +1,11 @@
+/**
+ * @file AMC.h
+ * Hardware device for uTCA AMC
+ *
+ * @author Brian Dorney
+ * @version 1.0
+ */
+
 #ifndef AMC_H
 #define AMC_H
 

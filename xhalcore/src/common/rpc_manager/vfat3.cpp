@@ -7,6 +7,7 @@
 xhal::rpc::VFAT3::VFAT3(const std::string& board_domain_name, const std::string& address_table_filename):
   xhal::XHALDevice(board_domain_name, address_table_filename)
 {
+  m_map_modName_modVer["vfat3"]="vfat3 v1.0.1";
   this->loadModule("vfat3","vfat3 v1.0.1");
 }
 

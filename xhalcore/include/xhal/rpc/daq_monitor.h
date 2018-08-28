@@ -19,7 +19,10 @@ namespace xhal {
          * Loads the neccessary remote modules
          * @param board_domain_name domain name of CTP7
          */
-        DaqMonitor(const std::string& board_domain_name):xhal::XHALInterface(board_domain_name){this->loadModule("amc", "amc v1.0.1");}
+        DaqMonitor(const std::string& board_domain_name):xhal::XHALInterface(board_domain_name){
+            m_map_modName_modVer["amc"]="amc v1.0.1";
+            this->loadModule("amc", "amc v1.0.1");
+        }
 
         ~DaqMonitor(){}
 

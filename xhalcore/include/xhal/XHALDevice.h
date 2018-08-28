@@ -3,7 +3,8 @@
  * Hardware device for XHAL
  *
  * @author Mykhailo Dalchenko
- * @version 1.0 
+ * @author Brian Dorney
+ * @version 1.0
  */
 
 #ifndef XHALDEVICE_H

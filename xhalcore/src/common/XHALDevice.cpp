@@ -1,6 +1,6 @@
 #include "xhal/XHALDevice.h"
 
-xhal::XHALDevice::XHALDevice(const std::string& board_domain_name, const std::string& address_table_filename): 
+xhal::XHALDevice::XHALDevice(const std::string& board_domain_name, const std::string& address_table_filename):
   xhal::XHALInterface(board_domain_name),
   m_address_table_filename(address_table_filename)
 {
@@ -10,8 +10,9 @@ xhal::XHALDevice::XHALDevice(const std::string& board_domain_name, const std::st
   DEBUG("XHALXML parser created");
   m_parser->setLogLevel(2);
   m_parser->parseXML();
-  this->loadModule("memory","memory v1.0.1");
-  this->loadModule("extras","extras v1.0.1");
+  m_map_modName_modVer["memory"]="memory v1.0.1";
+  m_map_modName_modVer["extras"]="extras v1.0.1";
+  this->loadStoredModules();
 }
 
 void xhal::XHALDevice::reconnect()
@@ -41,7 +42,7 @@ uint32_t xhal::XHALDevice::readReg(std::string regName)
     uint32_t result;
     if (rsp.get_key_exists("error"))
     {
-      ERROR("RPC response returned error, readReg failed"); 
+      ERROR("RPC response returned error, readReg failed");
       throw xhal::utils::XHALException("Error during register access");
     } else {
       try{
@@ -57,7 +58,7 @@ uint32_t xhal::XHALDevice::readReg(std::string regName)
     DEBUG("RESULT after applying mask: " << std::hex << result);
     for (int i = 0; i < 32; i++)
     {
-      if (mask & 1) 
+      if (mask & 1)
       {
         break;
       }else {
@@ -85,7 +86,7 @@ uint32_t xhal::XHALDevice::readReg(uint32_t address)
   uint32_t result;
   if (rsp.get_key_exists("error"))
   {
-    ERROR("RPC response returned error, readReg failed"); 
+    ERROR("RPC response returned error, readReg failed");
     throw xhal::utils::XHALException("Error during register access");
   } else {
     try{
@@ -98,7 +99,7 @@ uint32_t xhal::XHALDevice::readReg(uint32_t address)
   //result = result & mask;
   //for (int i = 0; i < 32; i++)
   //{
-  //  if (result & 0x01) 
+  //  if (result & 0x01)
   //  {
   //    break;
   //  }else {
@@ -125,7 +126,7 @@ void xhal::XHALDevice::writeReg(std::string regName, uint32_t value)
       STANDARD_CATCH;
       if (rsp.get_key_exists("error"))
       {
-        ERROR("RPC response returned error, writeReg failed"); 
+        ERROR("RPC response returned error, writeReg failed");
         throw xhal::utils::XHALException("Error during register access");
       }
     } else {
@@ -134,7 +135,7 @@ void xhal::XHALDevice::writeReg(std::string regName, uint32_t value)
       uint32_t mask = m_node.mask;
       for (int i = 0; i < 32; i++)
       {
-        if (mask & 1) 
+        if (mask & 1)
         {
           break;
         } else {
@@ -153,7 +154,7 @@ void xhal::XHALDevice::writeReg(std::string regName, uint32_t value)
       STANDARD_CATCH;
       if (rsp.get_key_exists("error"))
       {
-        ERROR("RPC response returned error, writeReg failed"); 
+        ERROR("RPC response returned error, writeReg failed");
         throw xhal::utils::XHALException("Error during register access");
       }
     }

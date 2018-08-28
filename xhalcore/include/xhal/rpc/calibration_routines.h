@@ -20,7 +20,10 @@ namespace xhal {
          * Loads the neccessary remote modules
          * @param board_domain_name domain name of CTP7
          */
-        CalRoutines(const std::string& board_domain_name):xhal::XHALInterface(board_domain_name){this->loadModule("calibration_routines", "calibration_routines v1.0.1");}
+        CalRoutines(const std::string& board_domain_name):xhal::XHALInterface(board_domain_name){
+            m_map_modName_modVer["calibration_routines"]="calibration_routines v1.0.1";
+            this->loadModule("calibration_routines", "calibration_routines v1.0.1");
+        }
 
         ~CalRoutines(){}
 
