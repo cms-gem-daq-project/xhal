@@ -81,18 +81,22 @@ BOOST_PYTHON_MODULE(xhalpy){
   register_exception_translator<xhal::utils::XHALRPCException>(&translate_XHALRPCException);
   register_exception_translator<xhal::utils::XHALRPCNotConnectedException>(&translate_XHALRPCNotConnectedException);
 
-  class_<xhal::XHALInterface>("XHALInterface", init<const std::string&>())
+  /*class_<xhal::XHALInterface>("XHALInterface", init<const std::string&>())
     .def("connect",&xhal::XHALInterface::connect)
     .def("loadModule",&xhal::XHALInterface::loadModule)
-    .def("setLogLevel",&xhal::XHALInterface::setLogLevel);
+    .def("setLogLevel",&xhal::XHALInterface::setLogLevel);*/
 
   class_<xhal::XHALDevice, bases<xhal::XHALInterface> >("XHALDevice", init<const std::string&, const std::string&>())
+  class_<xhal::XHALDevice>("XHALDevice", init<const std::string&, const std::string&>())
+    .def("connect",&xhal::XHALDevice::connect)
     .def("disconnect",&xhal::XHALDevice::disconnect)
     .def("getBlock",&xhal::XHALDevice::getBlock)
     .def("getList",&xhal::XHALDevice::getList)
+    .def("loadModule",&xhal::XHALDevice::loadModule)
     .def("readReg",readReg_byname)
     .def("readReg",readReg_byaddress)
     .def("reconnect",&xhal::XHALDevice::reconnect)
+    .def("setLogLevel",&xhal::XHALDevice::setLogLevel)
     .def("writeReg",&xhal::XHALDevice::writeReg);
 
   class_<PyListUint32>("PyListUint32")
@@ -118,7 +122,11 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("getOHVFATMaskMultiLink",&xhal::rpc::AMC::getOHVFATMaskMultiLink,getOHVFATMaskMultiLink_overloads())
     .def("sbitReadOut",&xhal::rpc::AMC::sbitReadOut);
 
-  class_<xhal::rpc::CalRoutines, bases<xhal::XHALInterface> >("CalRoutines", init<const std::string&>())
+  //class_<xhal::rpc::CalRoutines, bases<xhal::XHALInterface> >("CalRoutines", init<const std::string&>())
+  class_<xhal::rpc::CalRoutines>("CalRoutines", init<const std::string&>())
+    .def("connect",&xhal::rpc::CalRoutines::connect)
+    .def("loadModule",&xhal::rpc::CalRoutines::loadModule)
+    .def("setLogLevel",&xhal::rpc::CalRoutines::setLogLevel)
     .def("checkSbitMappingWithCalPulse",&xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse)
     .def("checkSbitRateWithCalPulse",&xhal::rpc::CalRoutines::checkSbitRateWithCalPulse)
     .def("genScan",&xhal::rpc::CalRoutines::genScan)
@@ -127,7 +135,11 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("ttcGenConf",&xhal::rpc::CalRoutines::ttcGenConf)
     .def("ttcGenToggle",&xhal::rpc::CalRoutines::ttcGenToggle);
 
-  class_<xhal::rpc::DaqMonitor, bases<xhal::XHALInterface> >("DaqMonitor", init<const std::string&>())
+  //class_<xhal::rpc::DaqMonitor, bases<xhal::XHALInterface> >("DaqMonitor", init<const std::string&>())
+  class_<xhal::rpc::DaqMonitor>("DaqMonitor", init<const std::string&>())
+    .def("connect",&xhal::rpc::DaqMonitor::connect)
+    .def("loadModule",&xhal::rpc::DaqMonitor::loadModule)
+    .def("setLogLevel",&xhal::rpc::DaqMonitor::setLogLevel)
     .def("getmonTTCmain",&xhal::rpc::DaqMonitor::getmonTTCmain)
     .def("getmonTRIGGERmain",&xhal::rpc::DaqMonitor::getmonTRIGGERmain,getmonTRIGGERmain_overloads())
     .def("getmonTRIGGEROHmain",&xhal::rpc::DaqMonitor::getmonTRIGGEROHmain,getmonTRIGGEROHmain_overloads())
@@ -180,7 +192,11 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("getUltraScanResults",&xhal::rpc::Optohybrid::getUltraScanResults)
     .def("stopCalPulse2AllChannels",&xhal::rpc::Optohybrid::stopCalPulse2AllChannels);
 
-  class_<xhal::rpc::Utils, bases<xhal::XHALInterface> >("Utils", init<const std::string&>())
+  //class_<xhal::rpc::Utils, bases<xhal::XHALInterface> >("Utils", init<const std::string&>())
+  class_<xhal::rpc::Utils>("Utils", init<const std::string&>())
+    .def("connect",&xhal::rpc::Utils::connect)
+    .def("loadModule",&xhal::rpc::Utils::loadModule)
+    .def("setLogLevel",&xhal::rpc::Utils::setLogLevel)
     .def("update_atdb",&xhal::rpc::Utils::update_atdb)
     .def("getRegInfoDB",&xhal::rpc::Utils::getRegInfoDB);
 
