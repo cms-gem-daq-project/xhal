@@ -57,12 +57,24 @@ void xhal::XHALInterface::disconnect()
     ERROR("Caught exception: " << e.message.c_str());
     throw xhal::utils::XHALRPCException("RPC exception: " + e.message);
   }
+  this->loadStoredModules();
 }
 
 void xhal::XHALInterface::loadModule(const std::string& module_name, const std::string& module_version)
 {
   try {
     ASSERT(rpc.load_module(module_name, module_version));
+  }
+  STANDARD_CATCH;
+  m_map_modName_modVer[module_name]=module_version;
+}
+
+void xhal::XHALInterface::loadStoredModules()
+{
+  try {
+    for(auto modIter = m_map_modName_modVer.begin(); modIter != m_map_modName_modVer.end(); ++modIter){
+      this->loadModule((*modIter).first,(*modIter).second);
+    } //End Loop over m_map_modName_modVer
   }
   STANDARD_CATCH;
 }

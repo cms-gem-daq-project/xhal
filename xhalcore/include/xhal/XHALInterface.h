@@ -3,13 +3,15 @@
  * Hardware interface for XHAL
  *
  * @author Mykhailo Dalchenko
- * @version 1.0 
+ * @author Brian Dorney
+ * @version 1.0
  */
 
 #ifndef XHALINTERFACE_H
 #define XHALINTERFACE_H
 
 #include <cstring>
+#include <map>
 #include <string>
 #include "xhal/rpc/wiscrpcsvc.h"
 #include "xhal/utils/Exception.h"
@@ -43,7 +45,7 @@
   catch (wisc::RPCMsg::BadKeyException &e) { \
     ERROR("Caught exception: " << e.key.c_str()); \
     throw xhal::utils::XHALRPCException("RPC BadKeyException (most probably remote register not accessible): " + e.key);\
-	} 
+	}
 
 #define ASSERT(x) do { \
 		if (!(x)) { \
@@ -55,7 +57,7 @@
 namespace xhal {
   /**
    * @class XHALInterface
-   * @brief Provides interface to call remote procedures at Zynq CPU 
+   * @brief Provides interface to call remote procedures at Zynq CPU
    */
   class XHALInterface
   {
@@ -88,6 +90,11 @@ namespace xhal {
       void loadModule(const std::string& module_name, const std::string& module_version);
 
       /**
+       * @brief loads all modules stored in this->m_map_modName_modVer
+       */
+      void loadStoredModules();
+
+      /**
        * @brief sets amount of logging/debugging information to display
        * @param loglevel:
        * 0 - ERROR
@@ -100,6 +107,7 @@ namespace xhal {
 
     protected:
       std::string m_board_domain_name;
+      std::map<std::string,std::string> m_map_modName_modVer; //key->module_name; value->module_version
       log4cplus::Logger m_logger;
       wisc::RPCSvc rpc;
       wisc::RPCMsg req, rsp;
