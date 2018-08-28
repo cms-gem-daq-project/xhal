@@ -87,7 +87,8 @@ $(OBJS_RPC_MAN):$(SRCS_RPC_MAN)
 	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) $(LIB) -c $(@:%.o=%.cpp) -o $@ 
 
 $(XHALPY_LIB):$(OBJS_XHALPY)
-	$(CC) $(CCFLAGS) ${LDFLAGS} $(ADDFLAGS) $(INC) $(LIB) -lboost_python -L$(PYTHON_LIB_PREFIX) -l$(PYTHON_LIB) -Llib/ -lxhal -lrpcman -o $@ $<
+	#$(CC) $(CCFLAGS) ${LDFLAGS} $(ADDFLAGS) $(INC) $(LIB) -lboost_python -L$(PYTHON_LIB_PREFIX) -l$(PYTHON_LIB) -Llib/ -lxhal -lrpcman -o $@ $<
+	g++ $(CCFLAGS) ${LDFLAGS} $(ADDFLAGS) $(INC) $(LIB) -lboost_python -L$(PYTHON_LIB_PREFIX) -l$(PYTHON_LIB) -Llib/ -lxhal -lrpcman -o $@ $<
 
 $(OBJS_XHALPY):$(SRCS_XHALPY)
 	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) -I$(PYTHON_INCLUDE_PREFIX) $(LIB) -c -o $@ $<
