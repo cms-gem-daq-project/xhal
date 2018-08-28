@@ -74,6 +74,8 @@ namespace xhal {
        */
       void connect();
 
+      std::string getBoardName(){return m_board_domain_name;}
+
       /**
        * @brief Reconnect to RPC service and reload required modules
        */

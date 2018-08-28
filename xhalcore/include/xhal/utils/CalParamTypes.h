@@ -78,7 +78,18 @@ namespace xhal {
 
             L1Ainterval = 250;
             pulseDelay = 40;
-            pulseRate = 0;
+            pulseRate = 40079000 / L1Ainterval;
+        }
+
+        uint32_t calcRate(){
+            if(L1Ainterval > 0){
+                pulseRate = 40079000 / L1Ainterval;
+            }
+            else{
+                pulseRate = 0;
+            }
+
+            return pulseRate;
         }
     }; //End ParamTtcGen
 } //End namespace xhal

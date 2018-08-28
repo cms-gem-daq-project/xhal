@@ -86,10 +86,10 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def("loadModule",&xhal::XHALInterface::loadModule)
     .def("setLogLevel",&xhal::XHALInterface::setLogLevel);*/
 
-  class_<xhal::XHALDevice, bases<xhal::XHALInterface> >("XHALDevice", init<const std::string&, const std::string&>())
   class_<xhal::XHALDevice>("XHALDevice", init<const std::string&, const std::string&>())
     .def("connect",&xhal::XHALDevice::connect)
     .def("disconnect",&xhal::XHALDevice::disconnect)
+    .def("getBoardName",&xhal::XHALDevice::getBoardName)
     .def("getBlock",&xhal::XHALDevice::getBlock)
     .def("getList",&xhal::XHALDevice::getList)
     .def("loadModule",&xhal::XHALDevice::loadModule)
@@ -124,29 +124,31 @@ BOOST_PYTHON_MODULE(xhalpy){
 
   //class_<xhal::rpc::CalRoutines, bases<xhal::XHALInterface> >("CalRoutines", init<const std::string&>())
   class_<xhal::rpc::CalRoutines>("CalRoutines", init<const std::string&>())
-    .def("connect",&xhal::rpc::CalRoutines::connect)
-    .def("loadModule",&xhal::rpc::CalRoutines::loadModule)
-    .def("setLogLevel",&xhal::rpc::CalRoutines::setLogLevel)
     .def("checkSbitMappingWithCalPulse",&xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse)
     .def("checkSbitRateWithCalPulse",&xhal::rpc::CalRoutines::checkSbitRateWithCalPulse)
+    .def("connect",&xhal::rpc::CalRoutines::connect)
     .def("genScan",&xhal::rpc::CalRoutines::genScan)
     .def("genChannelScan",&xhal::rpc::CalRoutines::genChannelScan)
+    .def("getBoardName",&xhal::rpc::CalRoutines::getBoardName)
+    .def("loadModule",&xhal::rpc::CalRoutines::loadModule)
     .def("sbitRateScan",&xhal::rpc::CalRoutines::sbitRateScan,sbitRateScan_overloads())
+    .def("setLogLevel",&xhal::rpc::CalRoutines::setLogLevel)
     .def("ttcGenConf",&xhal::rpc::CalRoutines::ttcGenConf)
     .def("ttcGenToggle",&xhal::rpc::CalRoutines::ttcGenToggle);
 
   //class_<xhal::rpc::DaqMonitor, bases<xhal::XHALInterface> >("DaqMonitor", init<const std::string&>())
   class_<xhal::rpc::DaqMonitor>("DaqMonitor", init<const std::string&>())
     .def("connect",&xhal::rpc::DaqMonitor::connect)
-    .def("loadModule",&xhal::rpc::DaqMonitor::loadModule)
-    .def("setLogLevel",&xhal::rpc::DaqMonitor::setLogLevel)
+    .def("getBoardName",&xhal::rpc::DaqMonitor::getBoardName)
     .def("getmonTTCmain",&xhal::rpc::DaqMonitor::getmonTTCmain)
     .def("getmonTRIGGERmain",&xhal::rpc::DaqMonitor::getmonTRIGGERmain,getmonTRIGGERmain_overloads())
     .def("getmonTRIGGEROHmain",&xhal::rpc::DaqMonitor::getmonTRIGGEROHmain,getmonTRIGGEROHmain_overloads())
     .def("getmonDAQOHmain",&xhal::rpc::DaqMonitor::getmonDAQOHmain,getmonDAQOHmain_overloads())
     .def("getmonOHmain",&xhal::rpc::DaqMonitor::getmonOHmain,getmonOHmain_overloads())
     .def("getmonDAQmain",&xhal::rpc::DaqMonitor::getmonDAQmain)
-    .def("getmonOHSCAmain",&xhal::rpc::DaqMonitor::getmonOHSCAmain,getmonOHSCAmain_overloads());
+    .def("getmonOHSCAmain",&xhal::rpc::DaqMonitor::getmonOHSCAmain,getmonOHSCAmain_overloads())
+    .def("loadModule",&xhal::rpc::DaqMonitor::loadModule)
+    .def("setLogLevel",&xhal::rpc::DaqMonitor::setLogLevel);
 
   class_<xhal::ParamCalPulse>("ParamCalPulse")
     .def_readwrite("enable", &xhal::ParamCalPulse::enable)
@@ -181,7 +183,8 @@ BOOST_PYTHON_MODULE(xhalpy){
     .def_readwrite("nPulses", &xhal::ParamTtcGen::nPulses)
     .def_readwrite("pulseDelay", &xhal::ParamTtcGen::pulseDelay)
     .def_readwrite("pulseRate", &xhal::ParamTtcGen::pulseRate)
-    .def_readwrite("type", &xhal::ParamTtcGen::type);
+    .def_readwrite("type", &xhal::ParamTtcGen::type)
+    .def("calcRate",&xhal::ParamTtcGen::calcRate);
 
   class_<xhal::rpc::Optohybrid, bases<xhal::XHALDevice> >("Optohybrid", init<const std::string&, const std::string&>())
     .def("broadcastRead",&xhal::rpc::Optohybrid::broadcastRead)
