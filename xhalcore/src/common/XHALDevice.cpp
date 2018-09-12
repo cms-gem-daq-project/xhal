@@ -19,8 +19,7 @@ void xhal::XHALDevice::reconnect()
 {
   if (!isConnected){
     this->connect();
-    this->loadModule("memory","memory v1.0.1");
-    this->loadModule("extras","extras v1.0.1");
+    this->loadStoredModules();
   } else {
     ERROR("Interface already connected. Reconnection failed");
     throw xhal::utils::XHALRPCException("RPC exception: Interface already connected. Reconnection failed");
