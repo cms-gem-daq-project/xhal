@@ -23,7 +23,7 @@ void xhal::rpc::VFAT3::configureVFAT3s(uint32_t ohN, uint32_t vfatMask)
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     return;
 }
@@ -41,7 +41,7 @@ void xhal::rpc::VFAT3::configureVFAT3DacMonitor(uint32_t ohN, uint32_t vfatMask,
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     return;
 } //End configureVFAT3DacMonitor(...)
@@ -63,7 +63,7 @@ void xhal::rpc::VFAT3::configureVFAT3DacMonitorMultiLink(uint32_t ohMask, PyList
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     return;
 } //End configureVFAT3DacMonitor(...)
@@ -80,14 +80,14 @@ PyListUint32 xhal::rpc::VFAT3::getChannelRegistersVFAT3(uint32_t ohN, uint32_t v
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 chanRegData;
     if (rsp.get_key_exists("chanRegData")) {
         chanRegData = rsp.get_word_array("chanRegData");
     } else {
-        throw xhal::utils::Exception("RPC exception: no channel register data found");
+        throw xhal::utils::XHALRPCException("RPC exception: no channel register data found");
     }
 
     return chanRegData;
@@ -106,14 +106,14 @@ PyListUint32 xhal::rpc::VFAT3::readVFAT3ADC(uint32_t ohN, bool useExtRefADC, uin
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 adcData;
     if (rsp.get_key_exists("adcData")) {
         adcData = rsp.get_word_array("adcData");
     } else {
-        throw xhal::utils::Exception("RPC exception: no ADC data found");
+        throw xhal::utils::XHALRPCException("RPC exception: no ADC data found");
     }
 
     return adcData;
@@ -132,14 +132,14 @@ PyListUint32 xhal::rpc::VFAT3::readVFAT3ADCMultiLink(uint32_t ohMask, PyListUint
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 adcDataAll;
     if (rsp.get_key_exists("adcDataAll")) {
         adcDataAll = rsp.get_word_array("adcDataAll");
     } else {
-        throw xhal::utils::Exception("RPC exception: no ADC data found");
+        throw xhal::utils::XHALRPCException("RPC exception: no ADC data found");
     }
 
     return adcDataAll;
@@ -164,7 +164,7 @@ void xhal::rpc::VFAT3::setChannelRegistersVFAT3(uint32_t ohN, uint32_t vfatMask,
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     return;
 }
@@ -184,7 +184,7 @@ void xhal::rpc::VFAT3::setChannelRegistersVFAT3Simple(uint32_t ohN, uint32_t vfa
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     return;
 }

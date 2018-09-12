@@ -22,10 +22,10 @@ uint32_t xhal::rpc::AMC::getOHVFATMask(uint32_t ohN){
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     else if (!rsp.get_key_exists("vfatMask")) {
-        throw xhal::utils::Exception("RPC exception: no VFAT Mask data found");
+        throw xhal::utils::XHALRPCException("RPC exception: no VFAT Mask data found");
     }
 
     return rsp.get_word("vfatMask");
@@ -42,10 +42,10 @@ PyListUint32 xhal::rpc::AMC::getOHVFATMaskMultiLink(uint32_t ohMask){
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     else if (!rsp.get_key_exists("ohVfatMaskArray")) {
-        throw xhal::utils::Exception("RPC exception: no OH VFAT Mask data found");
+        throw xhal::utils::XHALRPCException("RPC exception: no OH VFAT Mask data found");
     }
 
     return rsp.get_word_array("ohVfatMaskArray");
@@ -85,7 +85,7 @@ void xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, std::string
         //Check for RPC Error
         if (rsp.get_key_exists("error")) {
             fileTrigData.close();
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         }
 
         //If max network size reached before acquireTime was reached
@@ -102,7 +102,7 @@ void xhal::rpc::AMC::sbitReadOut(uint32_t ohN, uint32_t acquireTime, std::string
         if (rsp.get_key_exists("storedSbits")) {
             vec_sbitData = rsp.get_word_array("storedSbits");
         } else {
-            throw xhal::utils::Exception("RPC exception: no storedSbits found");
+            throw xhal::utils::XHALRPCException("RPC exception: no storedSbits found");
         }
 
         fileTrigData<<"evtNum/i:";

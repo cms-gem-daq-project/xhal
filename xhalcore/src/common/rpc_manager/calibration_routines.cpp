@@ -23,7 +23,7 @@ PyListUint32 xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse(xhal::ParamSca
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 data;
@@ -31,7 +31,7 @@ PyListUint32 xhal::rpc::CalRoutines::checkSbitMappingWithCalPulse(xhal::ParamSca
         data = rsp.get_word_array("data");
     }
     else{
-        throw xhal::utils::Exception("RPC exception: no SBIT mapping data found");
+        throw xhal::utils::XHALRPCException("RPC exception: no SBIT mapping data found");
     }
 
     return data;
@@ -59,7 +59,7 @@ PyDictVecUint32<std::string> xhal::rpc::CalRoutines::checkSbitRateWithCalPulse(x
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyDictVecUint32<std::string> ret_dictRateData;
@@ -67,21 +67,21 @@ PyDictVecUint32<std::string> xhal::rpc::CalRoutines::checkSbitRateWithCalPulse(x
         ret_dictRateData["CTP7"]=rsp.get_word_array("outDataCTP7Rate");
     }
     else{
-        throw xhal::utils::Exception("RPC exception: no SBIT rate data from CTP7 found");
+        throw xhal::utils::XHALRPCException("RPC exception: no SBIT rate data from CTP7 found");
     }
 
     if (rsp.get_key_exists("outDataFPGAClusterCntRate")) {
         ret_dictRateData["FPGA"]=rsp.get_word_array("outDataFPGARate");
     }
     else{
-        throw xhal::utils::Exception("RPC exception: no SBIT rate data from FPGA found");
+        throw xhal::utils::XHALRPCException("RPC exception: no SBIT rate data from FPGA found");
     }
 
     if (rsp.get_key_exists("outDataVFATSBits")) {
         ret_dictRateData["VFAT"]=rsp.get_word_array("outDataVFATRate");
     }
     else{
-        throw xhal::utils::Exception("RPC exception: no SBIT rate data from VFAT found");
+        throw xhal::utils::XHALRPCException("RPC exception: no SBIT rate data from VFAT found");
     }
 
     return ret_dictRateData;
@@ -114,14 +114,14 @@ PyListUint32 xhal::rpc::CalRoutines::genScan(xhal::ParamScan &scanParams, xhal::
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 data;
     if (rsp.get_key_exists("data")) {
         data = rsp.get_word_array("data");
     } else {
-        throw xhal::utils::Exception("RPC exception: no data from generic scan found");
+        throw xhal::utils::XHALRPCException("RPC exception: no data from generic scan found");
     }
 
     return data;
@@ -158,14 +158,14 @@ PyListUint32 xhal::rpc::CalRoutines::genChannelScan(xhal::ParamScan &scanParams,
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 data;
     if (rsp.get_key_exists("data")) {
         data = rsp.get_word_array("data");
     } else {
-        throw xhal::utils::Exception("RPC exception: no data from generic channel scan found");
+        throw xhal::utils::XHALRPCException("RPC exception: no data from generic channel scan found");
     }
 
     return data;
@@ -177,7 +177,7 @@ PyDictVecUint32<std::string> xhal::rpc::CalRoutines::sbitRateScan(xhal::ParamSca
 
 
     req.set_word("ohN",scanParams.ohN);
-    req.set_word("mask",scanParams.vfatMask);
+    req.set_word("maskOh",scanParams.vfatMask);
     req.set_word("dacMin",scanParams.dacMin);
     req.set_word("dacMax",scanParams.dacMax);
     req.set_word("dacStep",scanParams.dacStep);
@@ -200,19 +200,19 @@ PyDictVecUint32<std::string> xhal::rpc::CalRoutines::sbitRateScan(xhal::ParamSca
 
     PyDictVecUint32<std::string> ret_dictRateData;
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     if (rsp.get_key_exists("outDataDacValue")) {
         ret_dictRateData["DACVAL"] = rsp.get_word_array("outDataDacValue");
     } else {
-        throw xhal::utils::Exception("RPC exception: no dac values from sbit rate scan found");
+        throw xhal::utils::XHALRPCException("RPC exception: no dac values from sbit rate scan found");
     }
 
     if (rsp.get_key_exists("outDataCTP7Rate")) {
         ret_dictRateData["CTP7Rate"] = rsp.get_word_array("outDataCTP7Rate");
     } else {
-        throw xhal::utils::Exception("RPC exception: no data for CTP7 rate from sbit rate scan found");
+        throw xhal::utils::XHALRPCException("RPC exception: no data for CTP7 rate from sbit rate scan found");
     }
 
     if(isParallel){
@@ -220,7 +220,7 @@ PyDictVecUint32<std::string> xhal::rpc::CalRoutines::sbitRateScan(xhal::ParamSca
             ret_dictRateData["VFATRate"] = rsp.get_word_array("outDataVFATRate");
         }
         else{
-            throw xhal::utils::Exception("RPC exception: no data for VFAT rate from sbit rate scan found");
+            throw xhal::utils::XHALRPCException("RPC exception: no data for VFAT rate from sbit rate scan found");
         }
     }
 
@@ -247,7 +247,7 @@ void xhal::rpc::CalRoutines::ttcGenConf(uint32_t ohN, xhal::ParamTtcGen &ttcGenP
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;
@@ -264,7 +264,7 @@ void xhal::rpc::CalRoutines::ttcGenToggle(uint32_t ohN, bool enable)
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;

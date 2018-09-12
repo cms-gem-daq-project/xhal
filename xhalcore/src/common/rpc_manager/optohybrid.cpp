@@ -30,12 +30,12 @@ PyListUint32 xhal::rpc::Optohybrid::broadcastRead(uint32_t ohN, std::string &reg
 
     PyListUint32 data;
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
     else if (rsp.get_key_exists("data")) {
         data = rsp.get_word_array("data");
     } else {
-        throw xhal::utils::Exception("RPC exception: no data found from broadcast read");
+        throw xhal::utils::XHALRPCException("RPC exception: no data found from broadcast read");
     }
 
     return data;
@@ -64,7 +64,7 @@ void xhal::rpc::Optohybrid::broadcastWrite(uint32_t ohN, std::string &regName, u
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;
@@ -95,7 +95,7 @@ void xhal::rpc::Optohybrid::configureScanModule(xhal::ParamScan &scanParams, uin
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;
@@ -116,7 +116,7 @@ void xhal::rpc::Optohybrid::printScanConfiguration(uint32_t ohN, bool useUltra)
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;
@@ -137,7 +137,7 @@ void xhal::rpc::Optohybrid::startScanModule(uint32_t ohN, bool useUltra)
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;
@@ -159,14 +159,14 @@ PyListUint32 xhal::rpc::Optohybrid::getUltraScanResults(xhal::ParamScan &scanPar
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     PyListUint32 data;
     if (rsp.get_key_exists("data")) {
         data = rsp.get_word_array("data");
     } else {
-        throw xhal::utils::Exception("RPC exception: no data found in ultra scan results");
+        throw xhal::utils::XHALRPCException("RPC exception: no data found in ultra scan results");
     }
 
     return data;
@@ -187,7 +187,7 @@ void xhal::rpc::Optohybrid::stopCalPulse2AllChannels(uint32_t ohN, uint32_t mask
     STANDARD_CATCH;
 
     if (rsp.get_key_exists("error")) {
-        throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+        throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
     }
 
     return;

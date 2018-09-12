@@ -11,7 +11,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonTTCmain()
 
     try{
         if (rsp.get_key_exists("error")) {
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         } else {
             result.clear();
             result.push_back(rsp.get_word("MMCM_LOCKED"));
@@ -37,7 +37,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonTRIGGERmain(uint32_t noh)
 
     try{
         if (rsp.get_key_exists("error")) {
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         } else {
             std::string t;
             result.push_back(rsp.get_word("OR_TRIGGER_RATE"));
@@ -63,7 +63,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonTRIGGEROHmain(uint32_t noh)
 
     try{
         if (rsp.get_key_exists("error")) {
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         }else {
             std::string t;
             for (unsigned int i = 0; i < noh; i++) {
@@ -101,7 +101,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonDAQmain()
 
     try{
         if (rsp.get_key_exists("error")) {
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         } else {
             result.push_back(rsp.get_word("DAQ_ENABLE"));
             result.push_back(rsp.get_word("DAQ_LINK_READY"));
@@ -130,7 +130,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonDAQOHmain(uint32_t noh)
 
     try{
         if (rsp.get_key_exists("error")) {
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         }else {
             std::string t;
             for (unsigned int i = 0; i < noh; i++) {
@@ -165,7 +165,7 @@ PyListUint32 xhal::rpc::DaqMonitor::getmonOHmain(uint32_t noh)
 
     try{
         if (rsp.get_key_exists("error")) {
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         } else {
             std::string t;
             for (unsigned int i = 0; i < noh; i++) {
@@ -204,7 +204,7 @@ NestedPyDict<int,PyDictUint32<std::string> > xhal::rpc::DaqMonitor::getmonOHSCAm
     NestedPyDict<int,PyDictUint32<std::string> > ret_nestedDict;
     try{
         if (rsp.get_key_exists("error")) { //Case Error Exists
-            throw xhal::utils::Exception(strcat("RPC exception: ", rsp.get_string("error").c_str()));
+            throw xhal::utils::XHALRPCException(strcat("RPC exception: ", rsp.get_string("error").c_str()));
         } //End Case: Error Exists
         else { //Case: No Error
             for(int ohN = 0; ohN < noh; ++ohN){ //Loop over number of optohybrids
