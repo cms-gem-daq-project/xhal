@@ -3,7 +3,7 @@
  * XML parser for XHAL library. Parses the XML address table and store results in unordered map of (regName, Node)
  *
  * @author Mykhailo Dalchenko
- * @version 1.0 
+ * @version 1.0
  */
 
 
@@ -14,7 +14,12 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#ifdef __ARM_ARCH_7A__ //do not include boost::optional
+//#ifdef __arm__
+#include <experimental/optional>
+#else
 #include <boost/optional.hpp>
+#endif
 
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
@@ -61,9 +66,9 @@ namespace xhal {
          * @param xmlFile address table file name
          */
         XHALXMLParser(const std::string& xmlFile);
-      
+
         ~XHALXMLParser();
-      
+
         /**
          * @brief sets amount of logging/debugging information to display
          * @param loglevel:
@@ -81,16 +86,24 @@ namespace xhal {
         /**
          * @brief returns node object by its name or nothing if name is not found
          */
+#ifdef __ARM_ARCH_7A__
+        std::experimental::optional<xhal::utils::Node> getNode(const char* nodeName);
+#else
         boost::optional<xhal::utils::Node> getNode(const char* nodeName);
+#endif
         /**
          * @brief not implemented
          */
+#ifdef __ARM_ARCH_7A__
+        std::experimental::optional<xhal::utils::Node> getNodeFromAddress(const uint32_t nodeAddress);
+#else
         boost::optional<xhal::utils::Node> getNodeFromAddress(const uint32_t nodeAddress);
+#endif
         /**
          * @brief return all nodes
          */
         std::unordered_map<std::string,xhal::utils::Node> getAllNodes();
-    
+
       private:
         std::string m_xmlFile;
         log4cplus::Logger m_logger;
@@ -100,7 +113,7 @@ namespace xhal {
         xercesc::DOMNode* m_node;
         xercesc::DOMNodeList* children;
         static int index;
-    
+
         /**
          * @brief fills custom node object
          */
@@ -108,7 +121,11 @@ namespace xhal {
         /**
          * @brief returns node attribute value by its name if found
          */
+#ifdef __ARM_ARCH_7A__
+        std::experimental::optional<std::string> getAttVal(xercesc::DOMNode * t_node, const char * attname);
+#else
         boost::optional<std::string> getAttVal(xercesc::DOMNode * t_node, const char * attname);
+#endif
         /**
          * @brief converts string representation of hex, binary or decimal number to an integer
          */
