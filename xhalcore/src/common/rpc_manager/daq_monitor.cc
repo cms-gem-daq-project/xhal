@@ -11,7 +11,7 @@ DLLEXPORT uint32_t getmonTTCmain(uint32_t* result)
     	rsp = rpc_loc->call_method(req);
     }
     STANDARD_CATCH;
-    
+
     try{
         if (rsp.get_key_exists("error")) {
             printf("Error: %s",rsp.get_string("error").c_str());
@@ -212,3 +212,53 @@ DLLEXPORT uint32_t getmonOHmain(uint32_t* result, uint32_t noh)
     STANDARD_CATCH;
     return 0;
 }
+
+DLLEXPORT uint32_t getmonOHSCAmain(struct SCAMonitor *scaMon, uint32_t noh, uint32_t ohMask){
+    req = wisc::RPCMsg("amc.getmonOHSCAmain");
+    req.set_word("NOH",noh);
+    req.set_word("ohMask", ohMask);
+    wisc::RPCSvc* rpc_loc = getRPCptr();
+    try {
+        rsp = rpc_loc->call_method(req);
+    }
+    STANDARD_CATCH;
+
+    try{
+        if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        } else {
+            std::string t;
+            for (int ohN = 0; ohN < noh; ++ohN) {
+                // If this Optohybrid is masked skip it
+                if(!((ohMask >> ohN) & 0x1)){
+                    continue;
+                }
+
+                std::string strKeyBase = "OH" + std::to_string(ohN);
+
+                // Temperature Values
+                scaMon[ohN].scaTemp = rsp.get_word(strKeyBase + ".SCA_TEMP");
+                for(int tempVal=1; tempVal <= 9; ++tempVal){
+                    scaMon[ohN].ohBoardTemp[tempVal-1] = rsp.get_word(strKeyBase + ".BOARD_TEMP" + std::to_string(tempVal));
+                } //End loop over temperature values
+
+                // Voltage Values
+                scaMon[ohN].AVCCN = rsp.get_word(strKeyBase + ".AVCCN");
+                scaMon[ohN].AVTTN = rsp.get_word(strKeyBase + ".AVTTN");
+
+                scaMon[ohN].voltage1V0_INT = rsp.get_word(strKeyBase + ".1V0_INT");
+                scaMon[ohN].voltage1V8F = rsp.get_word(strKeyBase + ".1V8F");
+                scaMon[ohN].voltage1V5 = rsp.get_word(strKeyBase + ".1V5");
+                scaMon[ohN].voltage2V5_IO = rsp.get_word(strKeyBase + ".2V5_IO");
+                scaMon[ohN].voltage3V0 = rsp.get_word(strKeyBase + ".3V0");
+                scaMon[ohN].voltage1V8 = rsp.get_word(strKeyBase + ".1V8");
+
+                scaMon[ohN].VTRX_RSSI2 = rsp.get_word(strKeyBase + ".VTRX_RSSI2");
+                scaMon[ohN].VTRX_RSSI1 = rsp.get_word(strKeyBase + ".VTRX_RSSI1");
+            } //End loop over OH's
+        } //End case no error key
+    } //End try
+    STANDARD_CATCH;
+    return 0;
+} //End getmonOHSCAmain()
