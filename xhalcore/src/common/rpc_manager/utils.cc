@@ -22,6 +22,7 @@ DLLEXPORT uint32_t init(char * hostname)
         ASSERT(rpc.load_module("utils", "utils v1.0.1"));
         ASSERT(rpc.load_module("optohybrid", "optohybrid v1.0.1"));
         ASSERT(rpc.load_module("amc", "amc v1.0.1"));
+        ASSERT(rpc.load_module("daq_monitor", "daq_monitor v1.0.1"));
         ASSERT(rpc.load_module("calibration_routines", "calibration_routines v1.0.1"));
         ASSERT(rpc.load_module("vfat3", "vfat3 v1.0.1"));
     }
