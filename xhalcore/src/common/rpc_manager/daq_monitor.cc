@@ -308,21 +308,33 @@ DLLEXPORT uint32_t getmonOHSysmon(struct SysmonMonitor *sysmon, uint32_t noh, ui
                 std::string strKeyBase = "OH" + std::to_string(ohN);
 
                 //Read Alarm conditions & counters - OVERTEMP
-                sysmon[ohN].isOverTemp = rsp.get_word(strKeyBase + ".OVERTEMP");
-                sysmon[ohN].cntOverTemp = rsp.get_word(strKeyBase + ".CNT_OVERTEMP");
+                try{
+                    sysmon[ohN].isOverTemp = rsp.get_word(strKeyBase + ".OVERTEMP");
+                    sysmon[ohN].cntOverTemp = rsp.get_word(strKeyBase + ".CNT_OVERTEMP");
+                }
+                STANDARD_CATCH;
 
                 //Read Alarm conditions & counters - VCCAUX_ALARM
-                sysmon[ohN].isInVCCAuxAlarm = rsp.get_word(strKeyBase + ".VCCAUX_ALARM");
-                sysmon[ohN].cntVCCAuxAlarm = rsp.get_word(strKeyBase + ".CNT_VCCAUX_ALARM");
+                try{
+                    sysmon[ohN].isInVCCAuxAlarm = rsp.get_word(strKeyBase + ".VCCAUX_ALARM");
+                    sysmon[ohN].cntVCCAuxAlarm = rsp.get_word(strKeyBase + ".CNT_VCCAUX_ALARM");
+                }
+                STANDARD_CATCH;
 
                 //Read Alarm conditions & counters - VCCINT_ALARM
-                sysmon[ohN].isInVCCIntAlarm = rsp.get_word(strKeyBase + ".VCCINT_ALARM");
-                sysmon[ohN].cntVCCIntAlarm = rsp.get_word(strKeyBase + ".CNT_VCCINT_ALARM");
+                try{
+                    sysmon[ohN].isInVCCIntAlarm = rsp.get_word(strKeyBase + ".VCCINT_ALARM");
+                    sysmon[ohN].cntVCCIntAlarm = rsp.get_word(strKeyBase + ".CNT_VCCINT_ALARM");
+                }
+                STANDARD_CATCH;
 
                 //Read FPGA Core
-                sysmon[ohN].fpgaCoreTemp = rsp.get_word(strKeyBase + ".FPGA_CORE_TEMP");
-                sysmon[ohN].fpgaCore1V0 = rsp.get_word(strKeyBase + ".FPGA_CORE_1V0");
-                sysmon[ohN].fpgaCore2V5_IO = rsp.get_word(strKeyBase + ".FPGA_CORE_2V5_IO");
+                try{
+                    sysmon[ohN].fpgaCoreTemp = rsp.get_word(strKeyBase + ".FPGA_CORE_TEMP");
+                    sysmon[ohN].fpgaCore1V0 = rsp.get_word(strKeyBase + ".FPGA_CORE_1V0");
+                    sysmon[ohN].fpgaCore2V5_IO = rsp.get_word(strKeyBase + ".FPGA_CORE_2V5_IO");
+                }
+                STANDARD_CATCH;
             } //End loop over OH's
         } //End case no error key
     } //End try
