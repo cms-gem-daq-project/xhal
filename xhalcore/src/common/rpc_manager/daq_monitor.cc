@@ -5,7 +5,7 @@
  */
 DLLEXPORT uint32_t getmonTTCmain(uint32_t* result)
 {
-    req = wisc::RPCMsg("amc.getmonTTCmain");
+    req = wisc::RPCMsg("daq_monitor.getmonTTCmain");
     wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
     	rsp = rpc_loc->call_method(req);
@@ -31,10 +31,11 @@ DLLEXPORT uint32_t getmonTTCmain(uint32_t* result)
 /***
  * @brief get an array of values for TRIGGER main monitoring table
  */
-DLLEXPORT uint32_t getmonTRIGGERmain(uint32_t* result, uint32_t noh)
+DLLEXPORT uint32_t getmonTRIGGERmain(uint32_t* result, uint32_t noh, uint32_t ohMask)
 {
-    req = wisc::RPCMsg("amc.getmonTRIGGERmain");
+    req = wisc::RPCMsg("daq_monitor.getmonTRIGGERmain");
     req.set_word("NOH",noh);
+    req.set_word("ohMask", ohMask);
     wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
         rsp = rpc_loc->call_method(req);
@@ -48,9 +49,13 @@ DLLEXPORT uint32_t getmonTRIGGERmain(uint32_t* result, uint32_t noh)
         } else {
             std::string t;
             result[0] = rsp.get_word("OR_TRIGGER_RATE");
-            for (int i = 0; i < noh; i++) {
-                t = "OH"+std::to_string(i)+".TRIGGER_RATE";
-                result[i+1] = rsp.get_word(t);
+            for (int ohN = 0; ohN < noh; ohN++) {
+                // If this Optohybrid is masked skip it
+                if(!((ohMask >> ohN) & 0x1)){
+                    continue;
+                }
+                t = "OH"+std::to_string(ohN)+".TRIGGER_RATE";
+                result[ohN+1] = rsp.get_word(t);
             }
         }
     }
@@ -61,10 +66,11 @@ DLLEXPORT uint32_t getmonTRIGGERmain(uint32_t* result, uint32_t noh)
 /***
  * @brief get an array of values for TRIGGER OH main monitoring table
  */
-DLLEXPORT uint32_t getmonTRIGGEROHmain(uint32_t* result, uint32_t noh)
+DLLEXPORT uint32_t getmonTRIGGEROHmain(uint32_t* result, uint32_t noh, uint32_t ohMask)
 {
-    req = wisc::RPCMsg("amc.getmonTRIGGEROHmain");
+    req = wisc::RPCMsg("daq_monitor.getmonTRIGGEROHmain");
     req.set_word("NOH",noh);
+    req.set_word("ohMask", ohMask);
     wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
         rsp = rpc_loc->call_method(req);
@@ -77,23 +83,27 @@ DLLEXPORT uint32_t getmonTRIGGEROHmain(uint32_t* result, uint32_t noh)
             return 1;
         }else {
             std::string t;
-            for (int i = 0; i < noh; i++) {
-                t = "OH"+std::to_string(i)+".LINK0_MISSED_COMMA_CNT";
-                result[i] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".LINK1_MISSED_COMMA_CNT";
-                result[i+noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".LINK0_OVERFLOW_CNT";
-                result[i+2*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".LINK1_OVERFLOW_CNT";
-                result[i+3*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".LINK0_UNDERFLOW_CNT";
-                result[i+4*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".LINK1_UNDERFLOW_CNT";
-                result[i+5*noh] = rsp.get_word(t);
-                 t = "OH"+std::to_string(i)+".LINK0_SBIT_OVERFLOW_CNT";
-                result[i+6*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".LINK1_SBIT_OVERFLOW_CNT";
-                result[i+7*noh] = rsp.get_word(t);
+            for (int ohN = 0; ohN < noh; ohN++) {
+                // If this Optohybrid is masked skip it
+                if(!((ohMask >> ohN) & 0x1)){
+                    continue;
+                }
+                t = "OH"+std::to_string(ohN)+".LINK0_MISSED_COMMA_CNT";
+                result[ohN] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".LINK1_MISSED_COMMA_CNT";
+                result[ohN+noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".LINK0_OVERFLOW_CNT";
+                result[ohN+2*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".LINK1_OVERFLOW_CNT";
+                result[ohN+3*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".LINK0_UNDERFLOW_CNT";
+                result[ohN+4*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".LINK1_UNDERFLOW_CNT";
+                result[ohN+5*noh] = rsp.get_word(t);
+                 t = "OH"+std::to_string(ohN)+".LINK0_SBIT_OVERFLOW_CNT";
+                result[ohN+6*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".LINK1_SBIT_OVERFLOW_CNT";
+                result[ohN+7*noh] = rsp.get_word(t);
             }
         }
     }
@@ -106,7 +116,7 @@ DLLEXPORT uint32_t getmonTRIGGEROHmain(uint32_t* result, uint32_t noh)
  */
 DLLEXPORT uint32_t getmonDAQmain(uint32_t* result)
 {
-    req = wisc::RPCMsg("amc.getmonDAQmain");
+    req = wisc::RPCMsg("daq_monitor.getmonDAQmain");
     wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
         rsp = rpc_loc->call_method(req);
@@ -136,10 +146,11 @@ DLLEXPORT uint32_t getmonDAQmain(uint32_t* result)
 /***
  * @brief get an array of values for DAQ OH main monitoring table
  */
-DLLEXPORT uint32_t getmonDAQOHmain(uint32_t* result, uint32_t noh)
+DLLEXPORT uint32_t getmonDAQOHmain(uint32_t* result, uint32_t noh, uint32_t ohMask)
 {
-    req = wisc::RPCMsg("amc.getmonDAQOHmain");
+    req = wisc::RPCMsg("daq_monitor.getmonDAQOHmain");
     req.set_word("NOH",noh);
+    req.set_word("ohMask", ohMask);
     wisc::RPCSvc* rpc_loc = getRPCptr();
     try {
         rsp = rpc_loc->call_method(req);
@@ -152,19 +163,23 @@ DLLEXPORT uint32_t getmonDAQOHmain(uint32_t* result, uint32_t noh)
             return 1;
         }else {
             std::string t;
-            for (int i = 0; i < noh; i++) {
-                t = "OH"+std::to_string(i)+".STATUS.EVT_SIZE_ERR";
-                result[i] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".STATUS.EVENT_FIFO_HAD_OFLOW";
-                result[i+noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".STATUS.INPUT_FIFO_HAD_OFLOW";
-                result[i+2*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".STATUS.INPUT_FIFO_HAD_UFLOW";
-                result[i+3*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".STATUS.VFAT_TOO_MANY";
-                result[i+4*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".STATUS.VFAT_NO_MARKER";
-                result[i+5*noh] = rsp.get_word(t);
+            for (int ohN = 0; ohN < noh; ohN++) {
+                // If this Optohybrid is masked skip it
+                if(!((ohMask >> ohN) & 0x1)){
+                    continue;
+                }
+                t = "OH"+std::to_string(ohN)+".STATUS.EVT_SIZE_ERR";
+                result[ohN] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".STATUS.EVENT_FIFO_HAD_OFLOW";
+                result[ohN+noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".STATUS.INPUT_FIFO_HAD_OFLOW";
+                result[ohN+2*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".STATUS.INPUT_FIFO_HAD_UFLOW";
+                result[ohN+3*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".STATUS.VFAT_TOO_MANY";
+                result[ohN+4*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".STATUS.VFAT_NO_MARKER";
+                result[ohN+5*noh] = rsp.get_word(t);
             }
         }
     }
@@ -175,46 +190,9 @@ DLLEXPORT uint32_t getmonDAQOHmain(uint32_t* result, uint32_t noh)
 /***
  * @brief get an array of values for OH main monitoring table
  */
-DLLEXPORT uint32_t getmonOHmain(uint32_t* result, uint32_t noh)
+DLLEXPORT uint32_t getmonOHmain(uint32_t* result, uint32_t noh, uint32_t ohMask)
 {
-    req = wisc::RPCMsg("amc.getmonOHmain");
-    req.set_word("NOH",noh);
-    wisc::RPCSvc* rpc_loc = getRPCptr();
-    try {
-        rsp = rpc_loc->call_method(req);
-    }
-    STANDARD_CATCH;
-
-    try{
-        if (rsp.get_key_exists("error")) {
-            printf("Error: %s",rsp.get_string("error").c_str());
-            return 1;
-        } else {
-            std::string t;
-            for (int i = 0; i < noh; i++) {
-                t = "OH"+std::to_string(i)+".FW_VERSION";
-                result[i] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".EVENT_COUNTER";
-                result[i+noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".EVENT_RATE";
-                result[i+2*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".GTX.TRK_ERR";
-                result[i+3*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".GTX.TRG_ERR";
-                result[i+4*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".GBT.TRK_ERR";
-                result[i+5*noh] = rsp.get_word(t);
-                t = "OH"+std::to_string(i)+".CORR_VFAT_BLK_CNT";
-                result[i+6*noh] = rsp.get_word(t);
-            }
-        }
-    }
-    STANDARD_CATCH;
-    return 0;
-}
-
-DLLEXPORT uint32_t getmonOHSCAmain(struct SCAMonitor *scaMon, uint32_t noh, uint32_t ohMask){
-    req = wisc::RPCMsg("amc.getmonOHSCAmain");
+    req = wisc::RPCMsg("daq_monitor.getmonOHmain");
     req.set_word("NOH",noh);
     req.set_word("ohMask", ohMask);
     wisc::RPCSvc* rpc_loc = getRPCptr();
@@ -229,6 +207,48 @@ DLLEXPORT uint32_t getmonOHSCAmain(struct SCAMonitor *scaMon, uint32_t noh, uint
             return 1;
         } else {
             std::string t;
+            for (int ohN = 0; ohN < noh; ohN++) {
+                // If this Optohybrid is masked skip it
+                if(!((ohMask >> ohN) & 0x1)){
+                    continue;
+                }
+
+                t = "OH"+std::to_string(ohN)+".FW_VERSION";
+                result[ohN] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".EVENT_COUNTER";
+                result[ohN+noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".EVENT_RATE";
+                result[ohN+2*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".GTX.TRK_ERR";
+                result[ohN+3*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".GTX.TRG_ERR";
+                result[ohN+4*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".GBT.TRK_ERR";
+                result[ohN+5*noh] = rsp.get_word(t);
+                t = "OH"+std::to_string(ohN)+".CORR_VFAT_BLK_CNT";
+                result[ohN+6*noh] = rsp.get_word(t);
+            }
+        }
+    }
+    STANDARD_CATCH;
+    return 0;
+}
+
+DLLEXPORT uint32_t getmonOHSCAmain(struct SCAMonitor *scaMon, uint32_t noh, uint32_t ohMask){
+    req = wisc::RPCMsg("daq_monitor.getmonOHSCAmain");
+    req.set_word("NOH",noh);
+    req.set_word("ohMask", ohMask);
+    wisc::RPCSvc* rpc_loc = getRPCptr();
+    try {
+        rsp = rpc_loc->call_method(req);
+    }
+    STANDARD_CATCH;
+
+    try{
+        if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        } else {
             for (int ohN = 0; ohN < noh; ++ohN) {
                 // If this Optohybrid is masked skip it
                 if(!((ohMask >> ohN) & 0x1)){
@@ -262,3 +282,51 @@ DLLEXPORT uint32_t getmonOHSCAmain(struct SCAMonitor *scaMon, uint32_t noh, uint
     STANDARD_CATCH;
     return 0;
 } //End getmonOHSCAmain()
+
+DLLEXPORT uint32_t getmonOHSysmon(struct SysmonMonitor *sysmon, uint32_t noh, uint32_t ohMask, bool doReset){
+    req = wisc::RPCMsg("daq_monitor.getmonOHSysmon");
+    req.set_word("NOH",noh);
+    req.set_word("ohMask", ohMask);
+    req.set_word("doReset", doReset);
+    wisc::RPCSvc* rpc_loc = getRPCptr();
+    try {
+        rsp = rpc_loc->call_method(req);
+    }
+    STANDARD_CATCH;
+
+    try{
+        if (rsp.get_key_exists("error")) {
+            printf("Error: %s",rsp.get_string("error").c_str());
+            return 1;
+        } else {
+            for (int ohN = 0; ohN < noh; ++ohN) {
+                // If this Optohybrid is masked skip it
+                if(!((ohMask >> ohN) & 0x1)){
+                    continue;
+                }
+
+                std::string strKeyBase = "OH" + std::to_string(ohN);
+
+                //Read Alarm conditions & counters - OVERTEMP
+                sysmon[ohN].isOverTemp = rsp.get_word(strKeyBase + ".OVERTEMP");
+                sysmon[ohN].cntOverTemp = rsp.get_word(strKeyBase + ".CNT_OVERTEMP");
+
+                //Read Alarm conditions & counters - VCCAUX_ALARM
+                sysmon[ohN].isInVCCAuxAlarm = rsp.get_word(strKeyBase + ".VCCAUX_ALARM");
+                sysmon[ohN].cntVCCAuxAlarm = rsp.get_word(strKeyBase + ".CNT_VCCAUX_ALARM");
+
+                //Read Alarm conditions & counters - VCCINT_ALARM
+                sysmon[ohN].isInVCCIntAlarm = rsp.get_word(strKeyBase + ".VCCINT_ALARM");
+                sysmon[ohN].cntVCCIntAlarm = rsp.get_word(strKeyBase + ".CNT_VCCINT_ALARM");
+
+                //Read FPGA Core
+                sysmon[ohN].fpgaCoreTemp = rsp.get_word(strKeyBase + ".FPGA_CORE_TEMP");
+                sysmon[ohN].fpgaCore1V0 = rsp.get_word(strKeyBase + ".FPGA_CORE_1V0");
+                sysmon[ohN].fpgaCore2V5_IO = rsp.get_word(strKeyBase + ".FPGA_CORE_2V5_IO");
+            } //End loop over OH's
+        } //End case no error key
+    } //End try
+    STANDARD_CATCH;
+
+    return 0;
+} //End getmonOHSysmon()
