@@ -42,7 +42,7 @@ struct vfat3DACSize{
 DLLEXPORT uint32_t checkSbitMappingWithCalPulse(uint32_t ohN, uint32_t vfatN, uint32_t mask, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t nevts, uint32_t L1Ainterval, uint32_t pulseDelay, uint32_t *data);
 DLLEXPORT uint32_t checkSbitRateWithCalPulse(uint32_t ohN, uint32_t vfatN, uint32_t mask, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t waitTime, uint32_t pulseRate, uint32_t pulseDelay, uint32_t *outDataCTP7Rate, uint32_t *outDataFPGAClusterCntRate, uint32_t *outDataVFATSBits);
 DLLEXPORT uint32_t dacScan(uint32_t ohN, uint32_t dacSelect, uint32_t dacStep, uint32_t mask, bool useExtRefADC, uint32_t * results);
-DLLEXPORT uint32_t dacScanMultiLink(uint32_t ohMask, uint32_t NOH=12, uint32_t dacSelect, uint32_t dacStep, bool useExtRefADC, uint32_t * results);
+DLLEXPORT uint32_t dacScanMultiLink(uint32_t ohMask, uint32_t NOH, uint32_t dacSelect, uint32_t dacStep, bool useExtRefADC, uint32_t * results);
 DLLEXPORT uint32_t genScan(uint32_t nevts, uint32_t ohN, uint32_t dacMin, uint32_t dacMax, uint32_t dacStep,
         uint32_t ch, bool useCalPulse, bool currentPulse, uint32_t calScaleFactor, uint32_t mask, char * scanReg, bool useUltra, bool useExtTrig,
         uint32_t * result);

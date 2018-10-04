@@ -119,7 +119,7 @@ DLLEXPORT uint32_t dacScan(uint32_t ohN, uint32_t dacSelect, uint32_t dacStep, u
     const uint32_t size = (dacSize.max[dacSelect] - 0+1)*24/dacStep;
     if (rsp.get_key_exists("dacScanResults")) {
         ASSERT(rsp.get_word_array_size("dacScanResults") == size);
-        rsp.get_word_array("dacScanResults", result);
+        rsp.get_word_array("dacScanResults", results);
     } else {
         printf("No dacScanResults key found");
         return 1;
@@ -131,7 +131,7 @@ DLLEXPORT uint32_t dacScan(uint32_t ohN, uint32_t dacSelect, uint32_t dacStep, u
 DLLEXPORT uint32_t dacScanMultiLink(uint32_t ohMask, uint32_t NOH, uint32_t dacSelect, uint32_t dacStep, bool useExtRefADC, uint32_t * results){
     req = wisc::RPCMsg("calibration_routines.dacScanMultiLink");
 
-    req.set_word("ohMask", ohN);
+    req.set_word("ohMask", ohMask);
     req.set_word("NOH",NOH);
     req.set_word("dacSelect", dacSelect);
     req.set_word("dacStep", dacStep);
@@ -153,7 +153,7 @@ DLLEXPORT uint32_t dacScanMultiLink(uint32_t ohMask, uint32_t NOH, uint32_t dacS
     const uint32_t size = NOH * (dacSize.max[dacSelect] - 0+1)*24/dacStep;
     if (rsp.get_key_exists("dacScanResults")) {
         ASSERT(rsp.get_word_array_size("dacScanResults") == size);
-        rsp.get_word_array("dacScanResults", result);
+        rsp.get_word_array("dacScanResults", results);
     } else {
         printf("No dacScanResults key found");
         return 1;
