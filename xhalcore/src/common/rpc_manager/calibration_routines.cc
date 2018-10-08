@@ -151,11 +151,11 @@ DLLEXPORT uint32_t dacScanMultiLink(uint32_t ohMask, uint32_t NOH, uint32_t dacS
 
     vfat3DACSize dacSize;
     const uint32_t size = NOH * (dacSize.max[dacSelect] - 0+1)*24/dacStep;
-    if (rsp.get_key_exists("dacScanResults")) {
-        ASSERT(rsp.get_word_array_size("dacScanResults") == size);
-        rsp.get_word_array("dacScanResults", results);
+    if (rsp.get_key_exists("dacScanResultsAll")) {
+        ASSERT(rsp.get_word_array_size("dacScanResultsAll") == size);
+        rsp.get_word_array("dacScanResultsAll", results);
     } else {
-        printf("No dacScanResults key found");
+        printf("No dacScanResultsAll key found\n");
         return 1;
     }
 
