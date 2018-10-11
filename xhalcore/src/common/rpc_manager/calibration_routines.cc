@@ -116,7 +116,7 @@ DLLEXPORT uint32_t dacScan(uint32_t ohN, uint32_t dacSelect, uint32_t dacStep, u
     }
 
     vfat3DACSize dacSize;
-    const uint32_t size = (dacSize.max[dacSelect] - 0+1)*24/dacStep;
+    const uint32_t size = (dacSize.max[dacSelect]+1)*24/dacStep;
     if (rsp.get_key_exists("dacScanResults")) {
         ASSERT(rsp.get_word_array_size("dacScanResults") == size);
         rsp.get_word_array("dacScanResults", results);
