@@ -286,29 +286,29 @@ DLLEXPORT uint32_t sbitRateScan(uint32_t ohN, uint32_t dacMin, uint32_t dacMax, 
         return 1;
     }
 
-    if (rsp.get_key_exists("data_dacVal")) {
-        ASSERT(rsp.get_word_array_size("data_dacVal") == size);
-        rsp.get_word_array("data_dacVal", resultDacVal);
+    if (rsp.get_key_exists("outDataDacValue")) {
+        ASSERT(rsp.get_word_array_size("outDataDacValue") == size);
+        rsp.get_word_array("outDataDacValue", resultDacVal);
     } else {
-        printf("No key found for data dac values");
+        printf("No key found for data dac values\n");
         return 1;
     }
 
-    if (rsp.get_key_exists("data_trigRate")) {
-        ASSERT(rsp.get_word_array_size("data_trigRate") == size);
-        rsp.get_word_array("data_trigRate", resultTrigRate);
+    if (rsp.get_key_exists("outDataCTP7Rate")) {
+        ASSERT(rsp.get_word_array_size("outDataCTP7Rate") == size);
+        rsp.get_word_array("outDataCTP7Rate", resultTrigRate);
     } else {
-        printf("No key found for data trigger rate values");
+        printf("No key found for data trigger rate values\n");
         return 1;
     }
 
     if(isParallel){
-        if (rsp.get_key_exists("data_trigRatePerVFAT")) {
-            ASSERT(rsp.get_word_array_size("data_trigRatePerVFAT") == (size*24));
-            rsp.get_word_array("data_trigRatePerVFAT", resultTrigRatePerVFAT);
+        if (rsp.get_key_exists("outDataVFATRate")) {
+            ASSERT(rsp.get_word_array_size("outDataVFATRate") == (size*24));
+            rsp.get_word_array("outDataVFATRate", resultTrigRatePerVFAT);
         }
         else{
-            printf("No key found for data trigger rate per vfat values");
+            printf("No key found for data trigger rate per vfat values\n");
             return 1;
         }
     }
