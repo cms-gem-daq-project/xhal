@@ -10,7 +10,7 @@ struct vfat3DACSize{
         //ADC Measures Current
         //I wonder if this dacMin and dacMax info could be added to the LMDB...?
         //max[0] CFG_IREF should not be scanned per VFAT3 team instructions
-        //max[1] = ???
+        max[1] = 0xff; //CFG_CAL_DAC (as current)
         max[2] = 0xff; //CFG_BIAS_PRE_I_BIT
         max[3] = 0x3f; //CFG_BIAS_PRE_I_BLCC
         max[4] = 0x3f; //CFG_BIAS_PRE_I_BSF
@@ -27,7 +27,7 @@ struct vfat3DACSize{
         //max[16] = ???
 
         //ADC Measures Voltage
-        //max[33] = ???
+        max[33] = 0xff; //CFG_CAL_DAC (as voltage)
         max[34] = 0xff; //CFG_BIAS_PRE_VREF
         max[35] = 0xff; //CFG_THR_ARM_DAC
         max[36] = 0xff; //CFG_THR_ZCC_DAC
