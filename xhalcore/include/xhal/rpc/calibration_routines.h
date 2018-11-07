@@ -13,7 +13,7 @@ struct vfat3DACSize{
         //max[1] = ???
         max[2] = 0xff; //CFG_BIAS_PRE_I_BIT
         max[3] = 0x3f; //CFG_BIAS_PRE_I_BLCC
-        //max[4] = ???
+        max[4] = 0x3f; //CFG_BIAS_PRE_I_BSF
         max[5] = 0xff; //CFG_BIAS_SH_I_BFCAS
         max[6] = 0xff; //CFG_BIAS_SH_I_BDIFF
         max[7] = 0xff; //CFG_BIAS_SD_I_BDIFF
@@ -22,19 +22,16 @@ struct vfat3DACSize{
         max[10] = 0x3f; //CFG_BIAS_CFD_DAC_1
         max[11] = 0x3f; //CFG_BIAS_CFD_DAC_2
         max[12] = 0x3f; //CFG_HYST
-        //max[13] = ???
         max[14] = 0xff; //CFG_THR_ARM_DAC
         max[15] = 0xff; //CFG_THR_ZCC_DAC
         //max[16] = ???
 
         //ADC Measures Voltage
-        //max[32] = ???
         //max[33] = ???
         max[34] = 0xff; //CFG_BIAS_PRE_VREF
         max[35] = 0xff; //CFG_THR_ARM_DAC
         max[36] = 0xff; //CFG_THR_ZCC_DAC
         max[39] = 0x3; //CFG_ADC_VREF
-        //max[40] = ???
         //max[41] = ???
     }
 };
