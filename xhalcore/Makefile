@@ -9,48 +9,65 @@ PackageDir   := pkg/$(ShortPackage)
 Packager     := Mykhailo Dalchenko
 Arch         := x86_64
 
-XHAL_VER_MAJOR:=$(shell $(BUILD_HOME)/$(Project)/config/tag2rel.sh | awk '{split($$0,a," "); print a[1];}' | awk '{split($$0,b,":"); print b[2];}')
-XHAL_VER_MINOR:=$(shell $(BUILD_HOME)/$(Project)/config/tag2rel.sh | awk '{split($$0,a," "); print a[2];}' | awk '{split($$0,b,":"); print b[2];}')
-XHAL_VER_PATCH:=$(shell $(BUILD_HOME)/$(Project)/config/tag2rel.sh | awk '{split($$0,a," "); print a[3];}' | awk '{split($$0,b,":"); print b[2];}')
+ProjectBase = $(BUILD_HOME)/$(Project)
+ConfigDir   = $(ProjectBase)/config
+PackageBase = $(shell pwd)
 
-INSTALL_PREFIX=/opt/xhal
+include $(ConfigDir)/mfCommonDefs.mk
+include $(ConfigDir)/mfPythonDefs.mk
+include $(ConfigDir)/mfRPMRules.mk
 
-include $(BUILD_HOME)/$(Project)/config/mfCommonDefs.mk
-include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
-include $(BUILD_HOME)/$(Project)/config/mfRPMRules.mk
+PackageSourceDir     = $(PackageBase)/src/common
+PackageTestSourceDir = $(PackageBase)/test
+PackageIncludeDir    = $(PackageBase)/include
+PackageLibraryDir    = $(PackageBase)/lib
+PackageExecDir       = $(PackageBase)/bin
+PackageObjectDir     = $(PackageBase)/src/linux/$(Arch)
+
+XHAL_VER_MAJOR:=$(shell $(ConfigDir)/tag2rel.sh | awk '{split($$0,a," "); print a[1];}' | awk '{split($$0,b,":"); print b[2];}')
+XHAL_VER_MINOR:=$(shell $(ConfigDir)/tag2rel.sh | awk '{split($$0,a," "); print a[2];}' | awk '{split($$0,b,":"); print b[2];}')
+XHAL_VER_PATCH:=$(shell $(ConfigDir)/tag2rel.sh | awk '{split($$0,a," "); print a[3];}' | awk '{split($$0,b,":"); print b[2];}')
 
 CCFLAGS=-O0 -g3 -fno-inline -Wall -pthread
 ADDFLAGS=-fPIC -std=c++11 -m64
 
-IncludeDirs+= /opt/xdaq/include
-IncludeDirs+= $(BUILD_HOME)/$(Project)/$(LongPackage)/include
+IncludeDirs+= $(XDAQ_ROOT)/include
+IncludeDirs+= $(PackageIncludeDir)
 INC=$(IncludeDirs:%=-I%)
 
-Libraries+= -llog4cplus -lxerces-c -lwiscrpcsvc -lstdc++
+Libraries+=-llog4cplus -lxerces-c -lwiscrpcsvc -lstdc++
 
-LibraryDirs+=-L/opt/xdaq/lib
+LibraryDirs+=-L$(XDAQ_ROOT)/lib
+LibraryDirs+=-L$(PackageLibraryDir)
 LibraryDirs+=-L/opt/wiscrpcsvc/lib
 
 LDFLAGS = -shared $(LibraryDirs)
 
-SrcLocation  = src/common
-SRCS_UTILS   = $(shell echo $(SrcLocation)/utils/*.cpp)
-SRCS_XHAL    = $(shell echo $(SrcLocation)/*.cpp)
-SRCS_XHALPY  = $(shell echo $(SrcLocation)/python_wrappers/*.cpp)
-SRCS_RPC_MAN = $(shell echo $(SrcLocation)/rpc_manager/*.cpp)
+SRCS_XHAL   = $(wildcard $(PackageSourceDir)/*.cpp)
+SRCS_UTILS  = $(wildcard $(PackageSourceDir)/utils/*.cpp)
+SRCS_XHALPY = $(wildcard $(PackageSourceDir)/python_wrappers/*.cpp)
+SRCS_RPCMAN = $(wildcard $(PackageSourceDir)/rpc_manager/*.cpp)
 
-## Place object files in src/linux/$(Arch)
-ObjLocation = src/linux/$(Arch)
-OBJS_UTILS   = $(patsubst $(SrcLocation)/%,$(ObjLocation)/%, $(SRCS_UTILS:.cpp=.o))
-OBJS_XHAL    = $(patsubst $(SrcLocation)/%,$(ObjLocation)/%, $(SRCS_XHAL:.cpp=.o))
-OBJS_XHALPY  = $(patsubst $(SrcLocation)/%,$(ObjLocation)/%, $(SRCS_XHALPY:.cpp=.o))
-OBJS_RPC_MAN = $(patsubst $(SrcLocation)/%,$(ObjLocation)/%, $(SRCS_RPC_MAN:.cpp=.o))
+AUTODEPS_XHAL   = $(patsubst $(PackageSourceDir)/%.cpp,$(PackageObjectDir)/%.d,$(SRCS_XHAL))
+AUTODEPS_UTILS  = $(patsubst $(PackageSourceDir)/%.cpp,$(PackageObjectDir)/%.d,$(SRCS_UTILS))
+AUTODEPS_XHALPY = $(patsubst $(PackageSourceDir)/%.cpp,$(PackageObjectDir)/%.d,$(SRCS_XHALPY))
+AUTODEPS_RPCMAN = $(patsubst $(PackageSourceDir)/%.cpp,$(PackageObjectDir)/%.d,$(SRCS_RPCMAN))
 
-XHALCORE_LIB = $(BUILD_HOME)/$(Project)/$(LongPackage)/lib/libxhal.so
-RPC_MAN_LIB  = $(BUILD_HOME)/$(Project)/$(LongPackage)/lib/librpcman.so
-XHALPY_LIB   = $(BUILD_HOME)/$(Project)/$(LongPackage)/lib/xhalpy.so
+OBJS_XHAL   = $(patsubst %.d,%.o,$(AUTODEPS_XHAL))
+OBJS_UTILS  = $(patsubst %.d,%.o,$(AUTODEPS_UTILS))
+OBJS_XHALPY = $(patsubst %.d,%.o,$(AUTODEPS_XHALPY))
+OBJS_RPCMAN = $(patsubst %.d,%.o,$(AUTODEPS_RPCMAN))
 
-.PHONY: clean xhalcore rpc prerpm
+XHAL_LIB   = $(PackageLibraryDir)/libxhal.so
+XHALPY_LIB = $(PackageLibraryDir)/xhalpy.so
+RPCMAN_LIB = $(PackageLibraryDir)/librpcman.so
+
+TargetLibraries:= xhal xhalpy rpcman
+
+# destination path macro we'll use below
+df = $(PackageObjectDir)/$(*F)
+
+.PHONY: clean cleanall xhal rpc prerpm
 
 default: build
 	@echo "Running default target"
@@ -65,55 +82,58 @@ preprpm: default
 	@cp -rfp $(BUILD_HOME)/$(Project)/xhalarm/lib/*.so lib/arm
 	@cp -rfp lib $(PackageDir)
 
-build: xhalcore rpc
+_all: build
 
-_all: $(XHALCORE_LIB) $(RPC_MAN_LIB) $(XHALPY_LIB)
+rpc: xhal $(RPCMAN_LIB)
 
-rpc: xhalcore $(RPC_MAN_LIB)
+xhal: $(XHAL_LIB)
 
-xhalcore: $(XHALCORE_LIB)
-
-xhalpy: xhalcore rpc $(XHALPY_LIB)
+xhalpy: xhal rpc $(XHALPY_LIB)
 
 doc:
 	@echo "TO DO"
 
-$(OBJS_UTILS): $(SRCS_UTILS)
-	@rm -rf $(OBJS_UTILS)
-	$(MakeDir) $(shell dirname $@)
-	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) -c $< -o $@
+## adapted from http://make.mad-scientist.net/papers/advanced-auto-dependency-generation/
+## Generic object creation rule, generate dependencies and use them later
+$(PackageObjectDir)/%.o: $(PackageSourceDir)/%.cpp
+	$(MakeDir) $(@D)
+	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) -c -MT $@ -MMD -MP -MF $(@D)/$(*F).Td -o $@ $<
+	mv $(@D)/$(*F).Td $(@D)/$(*F).d
+	touch $@
 
-$(OBJS_XHAL): $(SRCS_XHAL)
-	$(MakeDir) $(shell dirname $@)
-#	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) $(Libraries) -c $(@:%.o=%.cpp) -o $@ 
-	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) -c -o $@ $(patsubst $(ObjLocation)/%,$(SrcLocation)/%, $(@:%.o=%.cpp))
+## dummy rule for dependencies
+$(PackageObjectDir)/%.d:
 
-$(OBJS_RPC_MAN): $(SRCS_RPC_MAN)
-	$(MakeDir) $(shell dirname $@)
-#	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) $(Libraries) -c $(@:%.o=%.cpp) -o $@ 
-	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) -c -o $@ $(patsubst $(ObjLocation)/%,$(SrcLocation)/%, $(@:%.o=%.cpp))
+## mark dependencies and objects as not auto-removed
+.PRECIOUS: $(PackageObjectDir)/%.d
+.PRECIOUS: $(PackageObjectDir)/%.o
 
-$(OBJS_XHALPY):$(SRCS_XHALPY)
-	$(MakeDir) $(shell dirname $@)
-	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) -I$(PYTHON_INCLUDE_PREFIX) -c $< -o $@
+## Force rule for all target library names
+$(TargetLibraries):
 
-$(XHALCORE_LIB): $(OBJS_UTILS) $(OBJS_XHAL)
-	$(MakeDir) $(BUILD_HOME)/$(Project)/$(LongPackage)/lib
-	$(CC) $(ADDFLAGS) $(LDFLAGS) -o $@ $^ $(Libraries)
-
-$(RPC_MAN_LIB): $(OBJS_RPC_MAN)
-	$(MakeDir) $(BUILD_HOME)/$(Project)/$(LongPackage)/lib
-	$(CC) $(ADDFLAGS) $(LDFLAGS) -o $@ $^ $(Libraries)
+$(XHAL_LIB): $(OBJS_XHAL) $(OBJS_UTILS)
+	$(MakeDir) -p $(@D)
+	$(CC) $(ADDFLAGS) $(LDFLAGS) -shared -Wl,-soname,$(@F) -o $@ $^ $(Libraries)
 
 $(XHALPY_LIB): $(OBJS_XHALPY)
-	$(MakeDir) $(BUILD_HOME)/$(Project)/$(LongPackage)/lib
-	$(CC) $(ADDFLAGS) $(LDFLAGS) -L$(PYTHON_LIB_PREFIX) -Llib -o $@ $< $(Libraries) -lboost_python -l$(PYTHON_LIB) -lxhal -lrpcman
+	$(MakeDir) -p $(@D)
+	$(CC) $(ADDFLAGS) $(LDFLAGS) -L$(PYTHON_LIB_PREFIX) -shared -Wl,-soname,$(@F) -o $@ $^ $(Libraries) -lboost_python -l$(PYTHON_LIB) -lxhal -lrpcman
+
+$(RPCMAN_LIB): $(OBJS_RPCMAN)
+	$(MakeDir) -p $(@D)
+	$(CC) $(ADDFLAGS) $(LDFLAGS) -shared -Wl,-soname,$(@F) -o $@ $^ $(Libraries)
+
+
+build: $(TargetLibraries)
 
 clean:
-	-rm -rf $(OBJS_UTILS) $(OBJS_XHAL) $(OBJS_RPC_MAN) $(OBJS_XHALPY)
-	-rm -rf $(XHALCORE_LIB) $(XHALPY_LIB) $(RPC_MAN_LIB)
-	-rm -rf $(BUILD_HOME)/$(Project)/$(LongPackage)/lib
+	-rm -rf $(OBJS_UTILS) $(OBJS_XHAL) $(OBJS_RPCMAN) $(OBJS_XHALPY)
+	-rm -rf $(PackageLibraryDir)
+	-rm -rf $(PackageExecDir)
 	-rm -rf $(PackageDir)
 
 cleandoc: 
 	@echo "TO DO"
+
+cleanall: clean cleandoc
+	-rm -rf $(PackageObjectDir)

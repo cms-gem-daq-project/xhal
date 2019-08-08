@@ -1,5 +1,5 @@
 SUBPACKAGES := \
-        reg_interface_gem \
+        reg_interface_gem
 
 SUBPACKAGES.DEBUG    := $(patsubst %,%.debug,    $(SUBPACKAGES))
 SUBPACKAGES.DOC      := $(patsubst %,%.doc,      $(SUBPACKAGES))

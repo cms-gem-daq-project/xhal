@@ -52,4 +52,6 @@ python:
 
 xhalarm:
 
-xhalcore: xhalarm
+xhalcore:
+
+xhalcore.RPM: xhalarm
