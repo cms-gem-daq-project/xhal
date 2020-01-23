@@ -25,27 +25,33 @@ include $(ConfigDir)/mfPythonDefs.mk
 PythonModules = ["$(Namespace).$(ShortPackage)"]
 $(info PythonModules=${PythonModules})
 
-include $(ConfigDir)/mfPythonRPM.mk
-include $(ConfigDir)/mfSphinx.mk
-
 REG_INTERFACE_GEM_VER_MAJOR:=$(shell $(ConfigDir)/tag2rel.sh | awk '{split($$0,a," "); print a[1];}' | awk '{split($$0,b,":"); print b[2];}')
 REG_INTERFACE_GEM_VER_MINOR:=$(shell $(ConfigDir)/tag2rel.sh | awk '{split($$0,a," "); print a[2];}' | awk '{split($$0,b,":"); print b[2];}')
 REG_INTERFACE_GEM_VER_PATCH:=$(shell $(ConfigDir)/tag2rel.sh | awk '{split($$0,a," "); print a[3];}' | awk '{split($$0,b,":"); print b[2];}')
 
+include $(ConfigDir)/mfPythonRPM.mk
+include $(ConfigDir)/mfSphinx.mk
+
+PythonSources=$(wildcard core/*.py)
+PythonSources+=$(wildcard scripts/*.py)
+
 default:
-	@echo "Running default target"
 	$(MakeDir) $(PackageDir)
 	@echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > pkg/$(Namespace)/__init__.py
 	@cp -rf __init__.py $(PackageDir)
 
-# need to ensure that the python only stuff is packaged into RPMs
-rpmprep: default
-	@echo "Running preprpm target"
+# Override, as this package uses pkg/setup.py as the template file
+$(PackageSetupFile): pkg/setup.py pkg/setup.cfg
+$(PackagePrepFile): $(PythonSources) Makefile | default
+	@cp -rf $(ConfigDir)/scriptlets/installrpm.sh pkg/
+	@perl -pi -e "s|__PYTHON_SCRIPT_PATH__|$(INSTALL_PATH)/bin|g" pkg/installrpm.sh
+	@perl -pi -e "s|__PYTHON_NAMESPACE__|$(Namespace)|g" pkg/installrpm.sh
 	$(MakeDir) $(ScriptDir)
 	@cp -rf scripts/*  $(ScriptDir)
 	@cp -rf core $(PackageDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt pkg
+	touch $@
 
 clean:
 	@echo "Running clean target"
@@ -57,6 +63,7 @@ clean:
 	-rm -f  pkg/MANIFEST.in
 	-rm -f  pkg/CHANGELOG.md
 	-rm -f  pkg/requirements.txt
+	-rm -f  pkg/installrpm.sh
 
 print-env:
 	@echo BUILD_HOME     $(BUILD_HOME)
