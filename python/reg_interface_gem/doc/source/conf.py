@@ -18,7 +18,7 @@ import datetime
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(1, os.path.abspath("../pkg"))
+sys.path.insert(1, os.path.abspath("../../pkg"))
 
 import sphinx_rtd_theme
 
@@ -37,22 +37,6 @@ authorlist = [
     "Andrew Peck",
     "Jared Sturdy",
 ]
-
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The full version, including alpha/beta/rc tags.
-release = os.popen("git describe --abbrev=6 --dirty --always --tags").read().strip()
-try:
-    release = re.sub("^v", "", release,)  #'1.0.0'
-except:
-    pass  # release = "0.0.0"
-
-# The short X.Y version.
-version = "{0}.{1}".format(*release.split("."))  #'1.0'
-print("Version {}".format(version))
-print("Release {}".format(release))
 
 project = u"xhal.reg_interface_gem"
 authors = ", ".join(authorlist)
@@ -207,7 +191,7 @@ html_static_path = ["_static"]
 # or fully qualified paths (eg. https://...)
 html_css_files = [
     # "{}/css/rtd-custom.css".format(os.getenv("GEM_DOCS_URL")),
-    "css/custom.css",
+    # "css/custom.css",
 ]
 
 # Custom JavaScript
@@ -275,13 +259,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    (
-        "index",
-        "reg_utils.tex",
-        u"reg\\_utils Documentation",
-        u"Mykhailo Dalchenko, Evaldas Juska, Robert King, Andrew Peck, Jared Sturdy",
-        "manual",
-    ),
+    ("index", "reg_utils.tex", u"reg\\_utils Documentation", authors, "manual",),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -309,15 +287,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (
-        "index",
-        "reg_utils",
-        u"reg_utils Documentation",
-        [u"Mykhailo Dalchenko, Evaldas Juska, Robert King, Andrew Peck, Jared Sturdy"],
-        1,
-    )
-]
+man_pages = [("index", "reg_utils", u"reg_utils Documentation", [authors], 1,)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -351,4 +321,19 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {"http://docs.python.org/": None}
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/", None,),
+    "cmsgemos": (os.getenv("EOS_SITE_URL") + "/docs/api/cmsgemos/latest", None,),
+    "gemplotting": (os.getenv("EOS_SITE_URL") + "/docs/api/gemplotting/latest", None,),
+    "vfatqc": (os.getenv("EOS_SITE_URL") + "/docs/api/vfatqc/latest", None,),
+    "ctp7_modules": (
+        os.getenv("EOS_SITE_URL") + "/docs/api/ctp7_modules/latest",
+        None,
+    ),
+    "reg_utils": (os.getenv("EOS_SITE_URL") + "/docs/api/reg_utils/latest", None,),
+    "xhal": (os.getenv("EOS_SITE_URL") + "/docs/api/xhal/latest", None,),
+    "reedmuller-c": (
+        os.getenv("EOS_SITE_URL") + "/docs/api/reedmuller-c/latest",
+        None,
+    ),
+}

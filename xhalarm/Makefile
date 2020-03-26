@@ -48,9 +48,9 @@ preprpm: default
 
 build:${XHAL_LIB}
 
-_all: clean ${XHAL_LIB} 
+_all: clean ${XHAL_LIB}
 
-$(XHAL_LIB): $(OBJS_XHAL) 
+$(XHAL_LIB): $(OBJS_XHAL)
 	@mkdir -p ${BUILD_HOME}/${Project}/${LongPackage}/lib
 	$(CC) $(CFLAGS) $(ADDFLAGS) ${LDFLAGS} $(INC) $(LIB) -o $@ $^
 
@@ -66,5 +66,8 @@ clean: cleanrpm
 	-${RM} ${XHAL_LIB} ${OBJS_XHAL}
 	-rm -rf $(PackageDir)
 
-cleandoc: 
+doc:
+	@echo "TO DO"
+
+cleandoc:
 	@echo "TO DO"

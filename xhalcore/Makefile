@@ -43,7 +43,7 @@ OBJS_RPC_MAN = $(SRCS_RPC_MAN:.cc=.o)
 XHALCORE_LIB=${BUILD_HOME}/${Project}/${LongPackage}/lib/libxhal.so
 RPC_MAN_LIB=${BUILD_HOME}/${Project}/${LongPackage}/lib/librpcman.so
 
-.PHONY: clean xhalcore rpc prerpm
+.PHONY: xhalcore rpc prerpm
 
 default:
 	@echo "Running default target"
@@ -57,7 +57,7 @@ preprpm: default
 
 build: xhalcore rpc
 
-_all:${XHALCORE_LIB} ${RPC_MAN_LIB} 
+_all:${XHALCORE_LIB} ${RPC_MAN_LIB}
 
 rpc:${RPC_MAN_LIB}
 
@@ -77,11 +77,12 @@ $(RPC_MAN_LIB): $(OBJS_RPC_MAN)
 	$(CC) $(CCFLAGS) $(ADDFLAGS) ${LDFLAGS} $(INC) $(LIB) -o $@ $^
 
 $(OBJS_RPC_MAN):$(SRCS_RPC_MAN)
-	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) $(LIB) -c $(@:%.o=%.cc) -o $@ 
+	$(CC) $(CCFLAGS) $(ADDFLAGS) $(INC) $(LIB) -c $(@:%.o=%.cc) -o $@
 
 clean:
 	-${RM} ${XHALCORE_LIB} ${OBJS_UTILS} ${OBJS_XHAL} ${RPC_MAN_LIB} ${OBJS_RPC_MAN}
 	-rm -rf $(PackageDir)
 
-cleandoc: 
-	@echo "TO DO"
+doc:
+
+cleandoc:
