@@ -5,19 +5,17 @@
 # from the environment for the first two.
 SPHINXOPTS?=
 SPHINXBUILD?=sphinx-build
-SPHINXAPIBUILD?=sphinx-apidoc
 SOURCEDIR=source
-SPHINXAPIDIR=sphinx-api
 BUILDDIR=build
+
 export DOXYREST_PREFIX?=$(CONDA_PREFIX)
 
 export EOS_SITE_NAME?=test-gemdaq-ci
 export EOS_SITE_PATH?=/tmp/$(USER)/$(EOS_SITE_NAME)
-
 export EOS_SITE_URL?=https://$(EOS_SITE_NAME).web.cern.ch/$(EOS_SITE_NAME)
 export GEM_DOCS_URL?=$(EOS_SITE_URL)
 
-.EXPORT_ALL_VARIABLES:
+export PYTHONSOURCE=$(shell dirname `pwd`)/python/reg_interface_gem/pkg
 
 .PHONY: help Makefile
 
@@ -26,11 +24,16 @@ help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 .PHONY: docs
+ifdef USE_DOXYREST
+docs: doxyrest
+else
+docs: doxygen
+endif
 docs: html
 
 .PHONY: doxygen doxyrest
 doxygen:
-	cp doxygen_conf xhal.cfg
+	cp xhal.cfg.in xhal.cfg
 	perl -pi -e "s|__GIT_VERSION__|$(GIT_VERSION)|g" xhal.cfg
 	doxygen xhal.cfg
 
@@ -55,6 +58,7 @@ clean:
 	rm -rf $(BUILDDIR)
 
 cleanall: clean cleandoxygen cleandoxyrest cleanexhale
+	rm -rf $(SOURCEDIR)/autoapi
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
