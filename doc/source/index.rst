@@ -13,11 +13,19 @@ Welcome to the xhal documentation!
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API
+   :maxdepth: 1
+   :caption: xhal library API
 
    exhale generated API <exhale-api/api>
    doxyrest generated API<doxyrest-api/api>
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: xhal python API
+
+   autoapi/gem_reg/index
+   autoapi/xhal/index
 
 
 .. toctree::
@@ -41,11 +49,10 @@ Welcome to the xhal documentation!
    ctp7_modules <http://0.0.0.0:8000/SITE_ROOT/docs/api/ctp7_modules/latest>
    reg_utils <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg_utils/latest>
    xhal (this site) <http://0.0.0.0:8000/SITE_ROOT/docs/api/xhal/latest>
-   reedmuller-c <http://0.0.0.0:8000/SITE_ROOT/docs/api/reedmuller-c/latest>
-   reg_interface_gem <http://0.0.0.0:8000/SITE_ROOT/docs/api/reg_interface_gem/latest>
 
 Indices and tables
 ~~~~~~~~~~~~~~~~~~
 
 * :ref:`genindex`
+* :ref:`modindex`
 * :ref:`search`

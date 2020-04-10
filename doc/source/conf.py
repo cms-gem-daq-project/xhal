@@ -50,7 +50,6 @@ print("Release {}".format(release))
 # -- General configuration ---------------------------------------------------
 
 extensions = [
-    "sphinx.ext.autodoc",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
@@ -66,45 +65,68 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_tabs.tabs",
     "sphinx_rtd_theme",
+    "autoapi.extension",  ## sphinx-autoapi
+    # "autoapi.spinx", ## autoapi...
+    # "sphinx.ext.autodoc",
+    # "sphinx.ext.inheritance_diagram",
 ]
+
+autoapi_type = "python"
+autoapi_python_use_implicit_namespaces = True  ## default False
+autoapi_dirs = [
+    "{}".format(os.getenv("PYTHONSOURCE")),
+]
+autoapi_add_toctree_entry = False  ## default True
+autoapi_keep_files = True  ## default False
+autoapi_options = [
+    "members",
+    "undoc-members",
+    "private-members",
+    "show-inheritance",
+    "special-members",
+    "show-inheritance-diagram",
+    "show-module-summary",
+]
+autoapi_ignore = ["*migrations*", "*conf.py", "*setup.py"]
+autoapi_template_dir = "_templates/autoapi"
 
 if os.getenv("USE_DOXYREST"):
     extensions += ["doxyrest", "cpplexer"]
-else:
-    extensions += ["breathe", "exhale"]
-    breathe_projects = {
-        "xhal": "../exhalebuild/xml/",
-    }
 
-    breathe_default_project = "xhal"
+extensions += ["breathe", "exhale"]
+breathe_projects = {
+    "xhal": "../exhalebuild/xml/",
+}
 
-    # Setup the exhale extension
-    exhale_args = {
-        # These arguments are required
-        "containmentFolder": "./exhale-api",
-        "rootFileName": "api.rst",
-        "rootFileTitle": "xhal API documentation",
-        "doxygenStripFromPath": "..",
-        # Suggested optional arguments
-        "createTreeView": True,
-        # TIP: if using the sphinx-bootstrap-theme, you need
-        "treeViewIsBootstrap": True,
-        "exhaleExecutesDoxygen": True,
-        "exhaleDoxygenStdin": """
-PROJECT_NAME = xhal
+breathe_default_project = "xhal"
+
+# Setup the exhale extension
+exhale_args = {
+    # These arguments are required
+    "containmentFolder": "./exhale-api",
+    "rootFileName": "api.rst",
+    "rootFileTitle": "{} API documentation".format(project),
+    "doxygenStripFromPath": "..",
+    # Suggested optional arguments
+    "createTreeView": True,
+    # TIP: if using the sphinx-bootstrap-theme, you need
+    "treeViewIsBootstrap": True,
+    "exhaleExecutesDoxygen": True,
+    "exhaleDoxygenStdin": """
+PROJECT_NAME = {}
 PROJECT_NUMBER = {}
 INPUT = ../../xhalcore/include
 PREDEFINED+= DOXYGEN_IGNORE_THIS
 """.format(
-            release
-        ),
-    }
+        project, release
+    ),
+}
 
-# Tell sphinx what the primary language being documented is.
-primary_domain = "cpp"
+# # Tell sphinx what the primary language being documented is.
+# primary_domain = "cpp"
 
-# Tell sphinx what the pygments highlight language should be.
-highlight_language = "cpp"
+# # Tell sphinx what the pygments highlight language should be.
+# highlight_language = "cpp"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -185,7 +207,6 @@ html_js_files = [
 ]
 
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/", None,),
     "cmsgemos": (os.getenv("EOS_SITE_URL") + "/docs/api/cmsgemos/latest", None,),
     "gemplotting": (os.getenv("EOS_SITE_URL") + "/docs/api/gemplotting/latest", None,),
     "vfatqc": (os.getenv("EOS_SITE_URL") + "/docs/api/vfatqc/latest", None,),
@@ -194,12 +215,4 @@ intersphinx_mapping = {
         None,
     ),
     "reg_utils": (os.getenv("EOS_SITE_URL") + "/docs/api/reg_utils/latest", None,),
-    "reg_interface_gem": (
-        os.getenv("EOS_SITE_URL") + "/docs/api/reg_interface_gem/latest",
-        None,
-    ),
-    "reedmuller-c": (
-        os.getenv("EOS_SITE_URL") + "/docs/api/reedmuller-c/latest",
-        None,
-    ),
 }
