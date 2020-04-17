@@ -106,7 +106,7 @@ exhale_args = {
     "containmentFolder": "./exhale-api",
     "rootFileName": "api.rst",
     "rootFileTitle": "{} API documentation".format(project),
-    "doxygenStripFromPath": "..",
+    "doxygenStripFromPath": "{}".format(os.path.abspath("../../")),
     # Suggested optional arguments
     "createTreeView": True,
     # TIP: if using the sphinx-bootstrap-theme, you need
