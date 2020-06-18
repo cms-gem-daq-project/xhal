@@ -26,11 +26,7 @@ REG_INTERFACE_GEM_VER_PATCH:=$(shell $(BUILD_HOME)/$(Project)/config/tag2rel.sh 
 
 include $(BUILD_HOME)/$(Project)/config/mfCommonDefs.mk
 include $(BUILD_HOME)/$(Project)/config/mfPythonDefs.mk
-
-# include $(BUILD_HOME)/$(Project)/config/mfDefs.mk
-
 include $(BUILD_HOME)/$(Project)/config/mfPythonRPM.mk
-include $(BUILD_HOME)/$(Project)/config/mfSphinx.mk
 
 default:
 	@echo "Running default target"
@@ -38,15 +34,21 @@ default:
 	@echo "__path__ = __import__('pkgutil').extend_path(__path__, __name__)" > pkg/$(Namespace)/__init__.py
 	@cp -rf __init__.py $(PackageDir)
 
+doc: package
+
+cleandoc:
+
 # need to ensure that the python only stuff is packaged into RPMs
-.PHONY: clean preprpm
-_rpmprep: preprpm
-	@echo "Running _rpmprep target"
-preprpm: default
-	@echo "Running preprpm target"
+.PHONY: package preprpm
+package: default
 	$(MakeDir) $(ScriptDir)
 	@cp -rf scripts/*  $(ScriptDir)
 	@cp -rf core $(PackageDir)
+
+_rpmprep: preprpm
+	@echo "Running _rpmprep target"
+preprpm: package
+	@echo "Running preprpm target"
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt $(PackageDir)
 	-cp -rf README.md LICENSE CHANGELOG.md MANIFEST.in requirements.txt pkg
 
